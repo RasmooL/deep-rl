@@ -73,8 +73,8 @@ class Agent(object):
         print 'Test @ frame ' + str(self.steps)
         test_steps = 0
         self.emu.new_random_game()
-        total_eps = 0.0
-        total_r = 0.0
+        total_eps = 0
+        total_r = 0
         while test_steps < self.test_frames:
             r, t = self.greedy()
             if t:
@@ -82,7 +82,7 @@ class Agent(object):
                 total_r += r
             test_steps += 1
 
-        print 'Avg. reward: ' + str(total_r / total_eps)
+        print 'Avg. reward: ' + str(float(total_r) / total_eps)
 
 
 

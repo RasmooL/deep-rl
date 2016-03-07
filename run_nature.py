@@ -35,7 +35,6 @@ def emu_config():
     color_avg = True
     random_seed = 42
     random_start = 10
-    pass
 
 
 @ex.config
@@ -45,9 +44,9 @@ def agent_config():
     eps_decay = 1e-6
     eps_min = 0.1
     batch_size = 32
-    train_start = 200
+    train_start = 10
     train_frames = 5e6
-    test_freq = 210
+    test_freq = 1
     test_frames = 1e3
 
 
