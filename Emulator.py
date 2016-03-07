@@ -1,4 +1,5 @@
 from ale_python_interface import ALEInterface
+import numpy as np
 import cv2
 import random
 
@@ -17,6 +18,9 @@ class Emulator(object):
 
         self.actions = self.ale.getMinimalActionSet()
         self.num_actions = len(self.actions)
+        self.action_dict = {}
+        for i in range(self.num_actions):
+            self.action_dict[self.actions[i]] = i
 
         (self.screen_width, self.screen_height) = self.ale.getScreenDims()
         self.out_width = config['in_width']
@@ -36,7 +40,6 @@ class Emulator(object):
                 self.new_random_game()
                 break
 
-
     def terminal(self):
         return self.ale.game_over()
 
@@ -46,5 +49,12 @@ class Emulator(object):
     def get_screen_gray(self):
         screen = self.ale.getScreenGrayscale()
         return cv2.resize(screen, (self.out_width, self.out_height))
+
+    def onehot_actions(self, actions):
+        size = len(actions)
+        onehot = np.zeros((size, self.num_actions))
+        for i in range(size):
+            onehot[i, self.action_dict[int(self.actions[actions[i]])]] = 1
+        return onehot
 
 

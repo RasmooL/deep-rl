@@ -69,7 +69,7 @@ class ReplayMemory(object):
 
     def add(self, s, a, r, t):
         # state is after transition
-        assert s.shape == (self.width, self.height,), "State has wrong dimensions"
+        assert s.shape == (self.width, self.height), "State has wrong dimensions"
 
         self.states[self.current, ...] = s
         self.actions[self.current] = a

@@ -7,7 +7,7 @@ class DQNNature(object):
         with tf.device(config['device']):
             tf.set_random_seed(config['random_seed'])
             self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-                                                         log_device_placement=True))
+                                                         log_device_placement=False))
 
             # placeholders
             self.state = tf.placeholder("float", [None, config['in_width'], config['in_height'], 4], name='state')
@@ -51,11 +51,11 @@ class DQNNature(object):
             conv_neurons = 1
             for d in outputs[-1].get_shape()[1:].as_list():
                 conv_neurons *= d
-            reshape = tf.reshape(outputs[-1], [-1, conv_neurons], name='reshape')
-            outputs.append(reshape)
+            self.reshape = tf.reshape(outputs[-1], [-1, conv_neurons], name='reshape')
+            outputs.append(self.reshape)
 
-            reshape_target = tf.reshape(outputs_target[-1], [-1, conv_neurons], name='reshape_target')
-            outputs_target.append(reshape_target)
+            self.reshape_target = tf.reshape(outputs_target[-1], [-1, conv_neurons], name='reshape_target')
+            outputs_target.append(self.reshape_target)
 
             for n in range(config['fc_layers']):
                 with tf.variable_scope('fc' + str(n)) as scope:
@@ -104,7 +104,7 @@ class DQNNature(object):
             # region cost
             self.discount = tf.constant(config['discount'])
             self.y = tf.add(self.rewards, tf.mul(self.discount, tf.mul(tf.sub(1.0, self.terminals), self.max_Q_target)))
-            self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=0)
+            self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=1)
             self.cost = tf.reduce_mean(tf.square(self.y - self.Q_action), reduction_indices=0)
             # endregion cost
 
@@ -112,6 +112,11 @@ class DQNNature(object):
                                                          config['momentum'], config['opt_eps']).minimize(self.cost)
 
         self.saver = tf.train.Saver()
+
+        self.tensorboard = config['tensorboard']
+        if self.tensorboard:
+            self.merged = tf.merge_all_summaries()
+            self.writer = tf.train.SummaryWriter("logs/", self.sess.graph_def)
 
         self.sess.run(tf.initialize_all_variables())
 
@@ -130,16 +135,16 @@ class DQNNature(object):
         return tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding="SAME")
 
     def train(self, s, a, r, ns, t):
-        feed_dict = {self.state: s, self.actions: a, self.rewards: r, self.nstate: ns, self.terminals: t}
+        feed_dict = {self.state: s/255.0, self.actions: a, self.rewards: r, self.nstate: ns/255.0, self.terminals: t}
 
         cost, _ = self.sess.run([self.cost, self.optimize_op], feed_dict)
 
         return cost
 
     def predict(self, s):
-        feed_dict = {self.state: s}
+        feed_dict = {self.state: s/255.0}
 
-        Q = self.sess.run([self.Q], feed_dict)
+        Q = self.sess.run(self.Q, feed_dict)[0]
 
         return Q
 

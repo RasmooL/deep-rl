@@ -22,6 +22,8 @@ def net_config():
     opt_decay = 0.95
     momentum = 0.0
     opt_eps = 0.01
+    tensorboard = False
+    tensorboard_freq = 50
 
 
 @ex.config
@@ -32,7 +34,7 @@ def emu_config():
     repeat_prob = 0.0
     color_avg = True
     random_seed = 42
-    random_start = 30
+    random_start = 10
     pass
 
 
@@ -43,6 +45,10 @@ def agent_config():
     eps_decay = 1e-6
     eps_min = 0.1
     batch_size = 32
+    train_start = 200
+    train_frames = 5e6
+    test_freq = 210
+    test_frames = 1e3
 
 
 @ex.automain
@@ -52,10 +58,5 @@ def main(_config):
     net = DQNNature(_config)
     agent = Agent(emu, net, _config)
 
-    import cv2
-    cv2.startWindowThread()
-    cv2.namedWindow('asd')
-
-    while not emu.terminal():
-        reward = agent.next(1)
+    agent.train()
 
