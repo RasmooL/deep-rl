@@ -136,3 +136,10 @@ class DQNNature(object):
 
         return cost
 
+    def predict(self, s):
+        feed_dict = {self.state: s}
+
+        Q = self.sess.run([self.Q], feed_dict)
+
+        return Q
+

@@ -1,37 +1,81 @@
 import numpy as np
+import random
+import cv2
 
 
 class ReplayMemory(object):
+    """
+    Replay memory with uniform minibatch sampling, implementation inspired by Tambet Matiisen's "Simple DQN".
+    """
+
     def __init__(self, config):
         self.width = config['in_width']
         self.height = config['in_height']
         self.max_size = config['hist_size']
-        self.states = np.empty([self.max_size, self.width, self.height, 4], dtype=np.uint8)
+        self.state_frames = config['state_frames']
+        self.batch_size = config['batch_size']
+        self.states = np.empty([self.max_size, self.width, self.height], dtype=np.uint8)
         self.actions = np.empty([self.max_size], dtype=np.uint8)
         self.rewards = np.empty([self.max_size], dtype=np.uint32)
-        self.nstates = np.empty([self.max_size, self.width, self.height, 4], dtype=np.uint8)
         self.terminals = np.empty([self.max_size], dtype=np.bool)
 
         self.count = 0
+        self.current = 0
 
-    def get_batch(self, size):
-        assert self.count > 0, "Replay memory is empty."
+    def get_minibatch(self):
+        assert self.count > self.state_frames, "Replay memory contains too few states."
 
-        rands = np.random.randint(low=0, high=min(self.count, self.max_size), size=(size))
-        s = self.states[rands, :, :, :]
-        a = self.actions[rands]
-        r = self.rewards[rands]
-        ns = self.nstates[rands, :, :, :]
-        t = self.terminals[rands]
+        indices = []
+        s = np.empty((self.batch_size, self.width, self.height, self.state_frames))
+        ns = np.empty((self.batch_size, self.width, self.height, self.state_frames))
+        while len(indices) < self.batch_size:
+            while True:
+                idx = random.randint(self.state_frames, self.count - 1)
+                # if we wrap over current pointer, try again
+                if idx >= self.current > self.state_frames - idx:
+                    continue
+                # if we cross a terminal state, try again (last state can be terminal)
+                if self.terminals[idx - 1 - self.state_frames:idx].any():
+                    continue
+                break
+
+            s[len(indices), ...] = self.get_state(idx - 1)
+            ns[len(indices), ...] = self.get_state(idx)
+            indices.append(idx)
+
+        a = self.actions[indices]
+        r = self.rewards[indices]
+        t = self.terminals[indices]
 
         return s, a, r, ns, t
 
-    def add(self, s, a, r, ns, t):
-        index = self.count % self.max_size
-        self.states[index, :, :, :] = s
-        self.actions[index] = a
-        self.rewards[index] = r
-        self.nstates[index, :, :, :] = ns
-        self.terminals[index] = t
-        self.count += 1
+    def get_state(self, idx):
+        assert self.count > 0, "Replay memory is empty."
+        assert idx < self.count, "idx not in range"
+
+        if idx > self.state_frames:
+            view = self.states[(idx - self.state_frames + 1):idx + 1, ...]
+        else:
+            indices = [(idx - i) % self.max_size for i in reversed(range(self.state_frames))]
+            view = self.states[indices, ...]
+
+        # make the order correct (this shouldn't be expensive since it's just a view and no copying is done)
+        view = view.transpose((1, 2, 0))
+        view.shape = (1, self.width, self.height, self.state_frames)
+        return view
+
+    def get_current(self):
+        return self.get_state(self.current - 1)
+
+    def add(self, s, a, r, t):
+        # state is after transition
+        assert s.shape == (self.width, self.height,), "State has wrong dimensions"
+
+        self.states[self.current, ...] = s
+        self.actions[self.current] = a
+        self.rewards[self.current] = r
+        self.terminals[self.current] = t
+
+        self.count = max(self.count, self.current + 1)
+        self.current = (self.current + 1) % self.max_size
 

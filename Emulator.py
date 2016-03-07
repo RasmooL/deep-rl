@@ -1,4 +1,6 @@
 from ale_python_interface import ALEInterface
+import cv2
+import random
 
 
 class Emulator(object):
@@ -17,9 +19,23 @@ class Emulator(object):
         self.num_actions = len(self.actions)
 
         (self.screen_width, self.screen_height) = self.ale.getScreenDims()
+        self.out_width = config['in_width']
+        self.out_height = config['in_height']
 
-    def reset(self):
+        self.max_random_steps = config['random_start']
+
+    def new_game(self):
         self.ale.reset_game()
+
+    def new_random_game(self):
+        self.new_game()
+        for i in range(random.randint(0, self.max_random_steps)):
+            self.act(random.randint(0, self.num_actions - 1))
+            if self.terminal():
+                print "Episode terminated during random start."
+                self.new_random_game()
+                break
+
 
     def terminal(self):
         return self.ale.game_over()
@@ -28,6 +44,7 @@ class Emulator(object):
         return self.ale.act(action)
 
     def get_screen_gray(self):
-        return self.ale.getScreenGrayscale()
+        screen = self.ale.getScreenGrayscale()
+        return cv2.resize(screen, (self.out_width, self.out_height))
 
 

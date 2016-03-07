@@ -4,6 +4,7 @@ from Agent import Agent
 from sacred import Experiment
 ex = Experiment('nature')
 
+
 @ex.config
 def net_config():
     conv_layers = 3
@@ -20,7 +21,8 @@ def net_config():
     lr = 0.00025
     opt_decay = 0.95
     momentum = 0.0
-    opt_eps = 0.0
+    opt_eps = 0.01
+
 
 @ex.config
 def emu_config():
@@ -30,11 +32,18 @@ def emu_config():
     repeat_prob = 0.0
     color_avg = True
     random_seed = 42
+    random_start = 30
     pass
+
 
 @ex.config
 def agent_config():
-    hist_size = 50000
+    hist_size = 100000
+    eps = 1.0
+    eps_decay = 1e-6
+    eps_min = 0.1
+    batch_size = 32
+
 
 @ex.automain
 def main(_config):
@@ -43,9 +52,10 @@ def main(_config):
     net = DQNNature(_config)
     agent = Agent(emu, net, _config)
 
+    import cv2
+    cv2.startWindowThread()
+    cv2.namedWindow('asd')
+
     while not emu.terminal():
-        reward, scr = agent.next(1)
-        t = emu.terminal()
-
-
+        reward = agent.next(1)
 
