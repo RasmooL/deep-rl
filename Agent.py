@@ -17,6 +17,8 @@ class Agent(object):
         self.test_freq = config['test_freq']
         self.test_frames = config['test_frames']
 
+        self.target_sync = config['target_sync']
+
         self.steps = 0
 
     def get_eps(self):
@@ -60,10 +62,14 @@ class Agent(object):
             if self.steps < self.train_start:
                 self.next(random.randrange(self.emu.num_actions))
             else:
+                if self.steps % self.target_sync == 0:
+                    self.net.sync_target()
                 self.eps_greedy()
                 s, a, r, ns, t = self.mem.get_minibatch()
                 a = self.emu.onehot_actions(a)  # necessary due to tensorflow not having proper indexing
-                self.net.train(s, a, r, ns, t)
+                cost = self.net.train(s, a, r, ns, t)
+                if self.steps % 10 == 0:  # TODO: don't hard code/remove this
+                    print cost
 
                 if self.steps % self.test_freq == 0:
                     self.test()
@@ -73,15 +79,17 @@ class Agent(object):
         print 'Test @ frame ' + str(self.steps)
         test_steps = 0
         self.emu.new_random_game()
-        total_eps = 0
+        total_eps = 1
         total_r = 0
         while test_steps < self.test_frames:
             r, t = self.greedy()
+            total_r += r
             if t:
                 total_eps += 1
-                total_r += r
             test_steps += 1
 
+        print 'Total reward: ' + str(total_r)
+        print 'Episodes: ' + str(total_eps)
         print 'Avg. reward: ' + str(float(total_r) / total_eps)
 
 

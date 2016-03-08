@@ -105,7 +105,7 @@ class DQNNature(object):
             self.discount = tf.constant(config['discount'])
             self.y = tf.add(self.rewards, tf.mul(self.discount, tf.mul(tf.sub(1.0, self.terminals), self.max_Q_target)))
             self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=1)
-            self.cost = tf.reduce_mean(tf.square(self.y - self.Q_action), reduction_indices=0)
+            self.cost = tf.reduce_sum(tf.square(self.y - self.Q_action), reduction_indices=0)
             # endregion cost
 
             self.optimize_op = tf.train.RMSPropOptimizer(config['lr'], config['opt_decay'],
@@ -133,6 +133,9 @@ class DQNNature(object):
     @staticmethod
     def conv2d(x, W, stride):
         return tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding="SAME")
+
+    def sync_target(self):
+        self.sess.run(self.assign_ops)
 
     def train(self, s, a, r, ns, t):
         feed_dict = {self.state: s/255.0, self.actions: a, self.rewards: r, self.nstate: ns/255.0, self.terminals: t}

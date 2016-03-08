@@ -22,6 +22,7 @@ def net_config():
     opt_decay = 0.95
     momentum = 0.0
     opt_eps = 0.01
+    target_sync = 1e4
     tensorboard = False
     tensorboard_freq = 50
 
@@ -39,14 +40,14 @@ def emu_config():
 
 @ex.config
 def agent_config():
-    hist_size = 100000
+    hist_size = 1e5
     eps = 1.0
     eps_decay = 1e-6
     eps_min = 0.1
     batch_size = 32
-    train_start = 10
+    train_start = 5e3
     train_frames = 5e6
-    test_freq = 1
+    test_freq = 5e3
     test_frames = 1e3
 
 
