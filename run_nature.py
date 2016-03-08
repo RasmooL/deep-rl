@@ -30,7 +30,7 @@ def net_config():
 @ex.config
 def emu_config():
     rom_path = '../ale-git/roms/breakout.bin'
-    display_screen = True
+    display_screen = False
     frame_skip = 4
     repeat_prob = 0.0
     color_avg = True
