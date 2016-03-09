@@ -128,6 +128,7 @@ class DQNNature(object):
             self.writer = tf.train.SummaryWriter("logs/", self.sess.graph_def)
 
         self.sess.run(tf.initialize_all_variables())
+
     @staticmethod
     def make_weight(shape):
         return tf.get_variable('weight', shape,
@@ -158,4 +159,7 @@ class DQNNature(object):
         Q = self.sess.run(self.Q, feed_dict)[0]
 
         return Q
+
+    def save(self, n):
+        self.saver.save(self.sess, "save/model_" + str(n) + ".ckpt")
 

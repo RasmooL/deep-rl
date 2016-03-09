@@ -18,6 +18,7 @@ class Agent(object):
         self.test_frames = config['test_frames']
 
         self.target_sync = config['target_sync']
+        self.save_freq = config['save_freq']
 
         self.steps = 0
 
@@ -64,6 +65,11 @@ class Agent(object):
             else:
                 if self.steps % self.target_sync == 0:
                     self.net.sync_target()
+                if self.steps % self.test_freq == 0:
+                    self.test()
+                if self.steps % self.save_freq == 0:
+                    self.net.save(self.steps)
+
                 self.eps_greedy()
                 s, a, r, ns, t = self.mem.get_minibatch()
                 a = self.emu.onehot_actions(a)  # necessary due to tensorflow not having proper indexing
@@ -71,8 +77,6 @@ class Agent(object):
                 if self.steps % 10 == 0:  # TODO: don't hard code/remove this
                     print cost
 
-                if self.steps % self.test_freq == 0:
-                    self.test()
             self.steps += 1
 
     def test(self):
