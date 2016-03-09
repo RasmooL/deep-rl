@@ -105,7 +105,15 @@ class DQNNature(object):
             self.discount = tf.constant(config['discount'])
             self.y = tf.add(self.rewards, tf.mul(self.discount, tf.mul(tf.sub(1.0, self.terminals), self.max_Q_target)))
             self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=1)
-            self.cost = tf.reduce_sum(tf.square(self.y - self.Q_action), reduction_indices=0)
+
+            # td error clipping
+            self.clip_delta = tf.constant(config['clip_delta'])
+            self.diff = tf.sub(self.y, self.Q_action)
+            self.quadratic_part = tf.minimum(tf.abs(self.diff), self.clip_delta)
+            self.linear_part = tf.sub(tf.abs(self.diff), self.quadratic_part)
+            self.clipped_diff = tf.add(0.5 * tf.square(self.quadratic_part),
+                                       tf.mul(self.clip_delta, self.linear_part))
+            self.cost = tf.reduce_sum(self.clipped_diff, reduction_indices=0)
             # endregion cost
 
             self.optimize_op = tf.train.RMSPropOptimizer(config['lr'], config['opt_decay'],

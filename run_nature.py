@@ -23,6 +23,7 @@ def net_config():
     momentum = 0.0
     opt_eps = 0.01
     target_sync = 1e4
+    clip_delta = 1.0
     tensorboard = False
     tensorboard_freq = 50
 
