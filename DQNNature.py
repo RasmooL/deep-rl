@@ -113,22 +113,22 @@ class DQNNature(object):
 
         self.saver = tf.train.Saver()
 
+
         self.tensorboard = config['tensorboard']
         if self.tensorboard:
             self.merged = tf.merge_all_summaries()
             self.writer = tf.train.SummaryWriter("logs/", self.sess.graph_def)
 
         self.sess.run(tf.initialize_all_variables())
-
     @staticmethod
     def make_weight(shape):
         return tf.get_variable('weight', shape,
-                               initializer=tf.truncated_normal_initializer(stddev=0.001))
+                               initializer=tf.uniform_unit_scaling_initializer(factor=1.43))  # 1.43 for relu
 
     @staticmethod
     def make_bias(shape):
         return tf.get_variable('bias', shape,
-                               initializer=tf.constant_initializer(0.1))
+                               initializer=tf.constant_initializer(0.001))
 
     @staticmethod
     def conv2d(x, W, stride):
