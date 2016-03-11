@@ -26,12 +26,13 @@ def net_config():
     clip_delta = 1.0
     tensorboard = False
     tensorboard_freq = 50
+    ckpt = 0
 
 
 @ex.config
 def emu_config():
     rom_path = '../ale-git/roms/breakout.bin'
-    display_screen = False
+    display_screen = True
     frame_skip = 4
     repeat_prob = 0.0
     color_avg = True
@@ -52,12 +53,24 @@ def agent_config():
     test_frames = 1e3
     save_freq = 5e3
 
+@ex.command
+def test(_config):
+    emu = Emulator(_config)
+    _config['num_actions'] = emu.num_actions
+    net = DQNNature(_config)
+    net.load(_config['ckpt'])
+    agent = Agent(emu, net, _config)
+    agent.next(0) # put a frame into the replay memory, should fix this
+
+    agent.test()
+
 
 @ex.automain
 def main(_config):
     emu = Emulator(_config)
     _config['num_actions'] = emu.num_actions
     net = DQNNature(_config)
+
     agent = Agent(emu, net, _config)
 
     agent.train()

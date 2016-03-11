@@ -163,3 +163,6 @@ class DQNNature(object):
     def save(self, n):
         self.saver.save(self.sess, "save/model_" + str(n) + ".ckpt")
 
+    def load(self, n):
+        self.saver.restore(self.sess, "save/model_" + str(n) + ".ckpt")
+
