@@ -7,7 +7,6 @@ of the MIT license. See the LICENSE.txt file for details.
 
 import numpy as np
 import random
-import cv2
 
 
 class ReplayMemory(object):

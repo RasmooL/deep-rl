@@ -5,13 +5,16 @@ Deep Q Networks implemented in Tensorflow, mainly aiming to reproduce results fr
 Currently implemented:
 - Vanilla DQN
 
-Tentative list of potential features:
+Being implemented:
 - Double Q-learning
+
+Tentative list of potential features:
 - Bootstrapping
 - Prioritized experience replay
+- Asynchronous actor-critic
 
 
-Copyright 2016 Rasmus Larsen
-
-This software may be modified and distributed under the terms
-of the MIT license. Se the LICENSE.txt file for details.
+> Copyright 2016 Rasmus Larsen
+>
+> This software may be modified and distributed under the terms
+> of the MIT license. See the LICENSE.txt file for details.

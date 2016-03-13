@@ -6,10 +6,11 @@ of the MIT license. See the LICENSE.txt file for details.
 """
 
 import tensorflow as tf
-import numpy as np
+from BaseDQN import BaseDQN
 
 
-class DQNNature(object):
+# TODO: Not implemented
+class DoubleDQN(BaseDQN):
     def __init__(self, config):
         with tf.device(config['device']):
             tf.set_random_seed(config['random_seed'])
@@ -126,29 +127,7 @@ class DQNNature(object):
             self.optimize_op = tf.train.RMSPropOptimizer(config['lr'], config['opt_decay'],
                                                          config['momentum'], config['opt_eps']).minimize(self.cost)
 
-        self.saver = tf.train.Saver()
-
-
-        self.tensorboard = config['tensorboard']
-        if self.tensorboard:
-            self.merged = tf.merge_all_summaries()
-            self.writer = tf.train.SummaryWriter("logs/", self.sess.graph_def)
-
-        self.sess.run(tf.initialize_all_variables())
-
-    @staticmethod
-    def make_weight(shape):
-        return tf.get_variable('weight', shape,
-                               initializer=tf.uniform_unit_scaling_initializer(factor=1.43))  # 1.43 for relu
-
-    @staticmethod
-    def make_bias(shape):
-        return tf.get_variable('bias', shape,
-                               initializer=tf.constant_initializer(0.001))
-
-    @staticmethod
-    def conv2d(x, W, stride):
-        return tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding="SAME")
+        super(DoubleDQN, self).__init__(config)
 
     def sync_target(self):
         self.sess.run(self.assign_ops)
@@ -167,9 +146,4 @@ class DQNNature(object):
 
         return Q
 
-    def save(self, n):
-        self.saver.save(self.sess, "save/model_" + str(n) + ".ckpt")
-
-    def load(self, n):
-        self.saver.restore(self.sess, "save/model_" + str(n) + ".ckpt")
 

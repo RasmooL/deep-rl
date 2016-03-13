@@ -5,7 +5,7 @@ This software may be modified and distributed under the terms
 of the MIT license. Se the LICENSE.txt file for details.
 """
 
-from DQNNature import DQNNature
+from NatureDQN import NatureDQN
 from Emulator import Emulator
 from Agent import Agent
 from sacred import Experiment
@@ -67,7 +67,7 @@ def agent_config():
 def test(_config):
     emu = Emulator(_config)
     _config['num_actions'] = emu.num_actions
-    net = DQNNature(_config)
+    net = NatureDQN(_config)
     net.load(_config['ckpt'])
     agent = Agent(emu, net, _config)
     agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
@@ -80,7 +80,7 @@ def main(_config, _log):
     sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
     emu = Emulator(_config)
     _config['num_actions'] = emu.num_actions
-    net = DQNNature(_config)
+    net = NatureDQN(_config)
 
     agent = Agent(emu, net, _config)
 
