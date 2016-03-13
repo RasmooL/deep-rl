@@ -32,7 +32,7 @@ def net_config():
 @ex.config
 def emu_config():
     rom_path = '../ale-git/roms/breakout.bin'
-    display_screen = True
+    display_screen = False
     frame_skip = 4
     repeat_prob = 0.0
     color_avg = True
@@ -47,11 +47,12 @@ def agent_config():
     eps_decay = 1e-6
     eps_min = 0.1
     batch_size = 32
-    train_start = 5e3
+    train_start = 5e4
     train_frames = 5e6
-    test_freq = 5e3
-    test_frames = 1e3
-    save_freq = 5e3
+    test_freq = 5e4
+    test_frames = 5e4
+    save_freq = 5e4
+
 
 @ex.command
 def test(_config):
@@ -60,7 +61,7 @@ def test(_config):
     net = DQNNature(_config)
     net.load(_config['ckpt'])
     agent = Agent(emu, net, _config)
-    agent.next(0) # put a frame into the replay memory, should fix this
+    agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
 
     agent.test()
 

@@ -47,7 +47,7 @@ class Agent(object):
         return reward, t
 
     def greedy(self):
-        if random.random() < 0.05: # 5% random
+        if random.random() < 0.05:  # 5% random
             a = random.randrange(self.emu.num_actions)
         else:
             state = self.mem.get_current()
@@ -74,10 +74,10 @@ class Agent(object):
                 s, a, r, ns, t = self.mem.get_minibatch()
                 a = self.emu.onehot_actions(a)  # necessary due to tensorflow not having proper indexing
                 cost = self.net.train(s, a, r, ns, t)
-                if self.steps % 10 == 0:  # TODO: don't hard code/remove this
-                    print cost
 
             self.steps += 1
+            if self.steps % 100 == 0:  # TODO: remove, just for debugging
+                print 'step ' + str(self.steps)
 
     def test(self):
         print 'Test @ frame ' + str(self.steps)
@@ -91,6 +91,8 @@ class Agent(object):
             if t:
                 total_eps += 1
             test_steps += 1
+            if test_steps % 100 == 0:  # TODO: remove, just for debugging
+                print 'test_step ' + str(test_steps)
 
         print 'Total reward: ' + str(total_r)
         print 'Episodes: ' + str(total_eps)
