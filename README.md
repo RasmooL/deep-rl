@@ -1,6 +1,8 @@
-# dqn-tf
+# deep-rl
 
-Deep Q Networks implemented in Tensorflow, mainly aiming to reproduce results from subsequent papers. Features from some of these newer papers on deep reinforcement learning will hopefully be implemented in the future.
+Deep Reinforcement Learning in Tensorflow.
+Aiming to reproduce results from interesting papers. Features from some of the newer papers on deep reinforcement learning will hopefully be implemented soon.
+Later some personal novel techniques might be implemented
 
 Currently implemented:
 - Vanilla DQN
