@@ -5,13 +5,14 @@ This software may be modified and distributed under the terms
 of the MIT license. Se the LICENSE.txt file for details.
 """
 
-from NatureDQN import NatureDQN
+from DoubleDQN import DoubleDQN
 from Emulator import Emulator
 from Agent import Agent
 from sacred import Experiment
 import sys
 import time
-ex = Experiment('nature')
+ex = Experiment('double-dqn')
+
 
 @ex.config
 def net_config():
@@ -41,7 +42,7 @@ def net_config():
 def emu_config():
     rom_path = '../ale-git/roms/'
     rom_name = 'breakout'
-    display_screen = False
+    display_screen = True
     frame_skip = 4
     repeat_prob = 0.0
     color_avg = True
@@ -58,7 +59,7 @@ def agent_config():
     batch_size = 32
     train_start = 5e3
     train_frames = 5e6
-    test_freq = 5e4
+    test_freq = 5e3
     test_frames = 5e4
     save_freq = 5e4
 
@@ -67,7 +68,7 @@ def agent_config():
 def test(_config):
     emu = Emulator(_config)
     _config['num_actions'] = emu.num_actions
-    net = NatureDQN(_config)
+    net = DoubleDQN(_config)
     net.load(_config['ckpt'])
     agent = Agent(emu, net, _config)
     agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
@@ -81,7 +82,7 @@ def main(_config, _log):
     print _config
     emu = Emulator(_config)
     _config['num_actions'] = emu.num_actions
-    net = NatureDQN(_config)
+    net = DoubleDQN(_config)
 
     agent = Agent(emu, net, _config)
 

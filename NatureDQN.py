@@ -92,8 +92,8 @@ class NatureDQN(BaseDQN):
                 b = self.make_bias(config['num_actions'])
                 self.Q = tf.nn.bias_add(tf.matmul(outputs[-1], W), b, name=scope.name + '_Q')
                 outputs.append(self.Q)
-                self.max_Q = tf.reduce_max(self.Q, 1, name=scope.name + '_max_Q')
-                outputs.append(self.max_Q)
+                self.argmax_Q = tf.argmax(self.Q, dimension=0, name=scope.name + '_argmax_Q')
+                outputs.append(self.argmax_Q)
 
                 # target network and assign ops
                 W_target = tf.Variable(W.initialized_value(), trainable=False)
@@ -111,7 +111,7 @@ class NatureDQN(BaseDQN):
             # region cost
             self.discount = tf.constant(config['discount'])
             self.y = tf.add(self.rewards, tf.mul(self.discount, tf.mul(tf.sub(1.0, self.terminals), self.max_Q_target)))
-            self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=1)
+            self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=1)  # TODO: see Tensorflow#206
 
             # td error clipping
             self.clip_delta = tf.constant(config['clip_delta'])
@@ -141,8 +141,8 @@ class NatureDQN(BaseDQN):
     def predict(self, s):
         feed_dict = {self.state: s/255.0}
 
-        Q = self.sess.run(self.Q, feed_dict)[0]
+        argmax_Q = self.sess.run(self.argmax_Q, feed_dict)[0]
 
-        return Q
+        return argmax_Q
 
 

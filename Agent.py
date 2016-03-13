@@ -46,9 +46,7 @@ class Agent(object):
             a = random.randrange(self.emu.num_actions)
         else:
             state = self.mem.get_current()
-            Q = self.net.predict(state)
-            assert len(Q) == self.emu.num_actions
-            a = np.argmax(Q)
+            a = self.net.predict(state)
 
         reward, t = self.next(a)
         return reward, t
@@ -58,9 +56,7 @@ class Agent(object):
             a = random.randrange(self.emu.num_actions)
         else:
             state = self.mem.get_current()
-            Q = self.net.predict(state)
-            assert len(Q) == self.emu.num_actions
-            a = np.argmax(Q)
+            a = self.net.predict(state)
 
         reward, t = self.next(a)
         return reward, t

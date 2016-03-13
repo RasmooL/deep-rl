@@ -93,8 +93,8 @@ class DoubleDQN(BaseDQN):
                 b = self.make_bias(config['num_actions'])
                 self.Q = tf.nn.bias_add(tf.matmul(outputs[-1], W), b, name=scope.name + '_Q')
                 outputs.append(self.Q)
-                self.max_Q = tf.reduce_max(self.Q, 1, name=scope.name + '_max_Q')
-                outputs.append(self.max_Q)
+                self.argmax_Q = tf.argmax(self.Q, dimension=1, name=scope.name + '_argmax_Q')
+                outputs.append(self.argmax_Q)
 
                 # target network and assign ops
                 W_target = tf.Variable(W.initialized_value(), trainable=False)
@@ -102,7 +102,6 @@ class DoubleDQN(BaseDQN):
                 self.Q_target = tf.nn.bias_add(tf.matmul(outputs_target[-1],
                                                          W_target), b_target, name=scope.name + '_Q_target')
                 outputs_target.append(self.Q_target)
-                self.max_Q_target = tf.reduce_max(self.Q_target, 1, name=scope.name + '_max_Q_target')
                 W_op = W_target.assign(W)
                 b_op = b_target.assign(b)
                 self.assign_ops.append(W_op)
@@ -111,8 +110,12 @@ class DoubleDQN(BaseDQN):
 
             # region cost
             self.discount = tf.constant(config['discount'])
-            self.y = tf.add(self.rewards, tf.mul(self.discount, tf.mul(tf.sub(1.0, self.terminals), self.max_Q_target)))
-            self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=1)
+            # NOTE: one_hot is currently ONLY in git version
+            argmax_Q_onehot = tf.one_hot(self.argmax_Q, depth=config['num_actions'], on_value=1.0, off_value=0.0)
+            self.Q_next = tf.reduce_sum(tf.mul(self.Q_target, argmax_Q_onehot),
+                                        reduction_indices=1)  # main difference to standard DQN is this value
+            self.y = tf.add(self.rewards, tf.mul(self.discount, tf.mul(tf.sub(1.0, self.terminals), self.Q_next)))
+            self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=1)  # TODO: see Tensorflow#206
 
             # td error clipping
             self.clip_delta = tf.constant(config['clip_delta'])
@@ -142,8 +145,8 @@ class DoubleDQN(BaseDQN):
     def predict(self, s):
         feed_dict = {self.state: s/255.0}
 
-        Q = self.sess.run(self.Q, feed_dict)[0]
+        argmax_Q = self.sess.run(self.argmax_Q, feed_dict)[0]
 
-        return Q
+        return argmax_Q
 
 
