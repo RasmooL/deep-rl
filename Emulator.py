@@ -1,3 +1,10 @@
+"""
+Copyright 2016 Rasmus Larsen
+
+This software may be modified and distributed under the terms
+of the MIT license. See the LICENSE.txt file for details.
+"""
+
 from ale_python_interface import ALEInterface
 import numpy as np
 import cv2
@@ -14,7 +21,7 @@ class Emulator(object):
         self.ale.setBool('display_screen', config['display_screen'])
         self.ale.setInt('random_seed', config['random_seed'])
 
-        self.ale.loadROM(config['rom_path'])
+        self.ale.loadROM(config['rom_path'] + config['rom_name'] + '.bin')
 
         self.actions = self.ale.getMinimalActionSet()
         self.num_actions = len(self.actions)

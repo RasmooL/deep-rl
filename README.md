@@ -9,3 +9,9 @@ Tentative list of potential features:
 - Double Q-learning
 - Bootstrapping
 - Prioritized experience replay
+
+
+Copyright 2016 Rasmus Larsen
+
+This software may be modified and distributed under the terms
+of the MIT license. Se the LICENSE.txt file for details.

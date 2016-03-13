@@ -1,9 +1,17 @@
+"""
+Copyright 2016 Rasmus Larsen
+
+This software may be modified and distributed under the terms
+of the MIT license. Se the LICENSE.txt file for details.
+"""
+
 from DQNNature import DQNNature
 from Emulator import Emulator
 from Agent import Agent
 from sacred import Experiment
 ex = Experiment('nature')
-
+import sys
+import time
 
 @ex.config
 def net_config():
@@ -31,7 +39,8 @@ def net_config():
 
 @ex.config
 def emu_config():
-    rom_path = '../ale-git/roms/breakout.bin'
+    rom_path = '../ale-git/roms/'
+    rom_name = 'breakout'
     display_screen = False
     frame_skip = 4
     repeat_prob = 0.0
@@ -67,7 +76,8 @@ def test(_config):
 
 
 @ex.automain
-def main(_config):
+def main(_config, _log):
+    sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
     emu = Emulator(_config)
     _config['num_actions'] = emu.num_actions
     net = DQNNature(_config)

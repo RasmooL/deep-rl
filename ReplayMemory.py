@@ -1,3 +1,10 @@
+"""
+Copyright 2016 Rasmus Larsen
+
+This software may be modified and distributed under the terms
+of the MIT license. See the LICENSE.txt file for details.
+"""
+
 import numpy as np
 import random
 import cv2
