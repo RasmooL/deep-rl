@@ -38,7 +38,7 @@ class ReplayMemory(object):
             while True:
                 idx = random.randint(self.state_frames, self.count - 1)
                 # if we wrap over current pointer, try again
-                if idx >= self.current > self.state_frames - idx:
+                if idx >= self.current > idx - self.state_frames:
                     continue
                 # if we cross a terminal state, try again (last state can be terminal)
                 if self.terminals[idx - 1 - self.state_frames:idx].any():
