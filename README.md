@@ -8,3 +8,4 @@ Currently implemented:
 Tentative list of potential features:
 - Double Q-learning
 - Bootstrapping
+- Prioritized experience replay
