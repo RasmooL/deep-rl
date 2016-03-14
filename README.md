@@ -6,11 +6,11 @@ Later some personal novel techniques might be implemented.
 
 ## Project plan
 Currently implemented:
-- Vanilla DQN
-- [Double Q-learning](http://arxiv.org/abs/1509.06461)
+- Vanilla DQN: NatureDQN.py & run_nature.py
+- [Double Q-learning](http://arxiv.org/abs/1509.06461): DoubleDQN.py & run_double.py
 
 Tentative list of potential features:
-- Bootstrapping
+- [Bootstrapping](http://arxiv.org/abs/1602.04621)
 - [Prioritized experience replay](http://arxiv.org/abs/1511.05952)
 - [Asynchronous actor-critic](http://arxiv.org/abs/1602.01783)
 
