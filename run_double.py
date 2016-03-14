@@ -5,12 +5,14 @@ This software may be modified and distributed under the terms
 of the MIT license. Se the LICENSE.txt file for details.
 """
 
-from DoubleDQN import DoubleDQN
-from Emulator import Emulator
-from Agent import Agent
-from sacred import Experiment
 import sys
 import time
+
+from sacred import Experiment
+from core.Emulator import Emulator
+from dqn.Agent import Agent
+from dqn.DoubleDQN import DoubleDQN
+
 ex = Experiment('double-dqn')
 
 

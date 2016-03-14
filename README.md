@@ -6,8 +6,8 @@ Later some personal novel techniques might be implemented.
 
 ## Project plan
 Currently implemented:
-- Vanilla DQN: NatureDQN.py & run_nature.py
-- [Double Q-learning](http://arxiv.org/abs/1509.06461): DoubleDQN.py & run_double.py
+- Vanilla DQN: dqn.NatureDQN.py & run_nature.py
+- [Double Q-learning](http://arxiv.org/abs/1509.06461): dqn.DoubleDQN.py & run_double.py
 
 Tentative list of potential features:
 - [Bootstrapping](http://arxiv.org/abs/1602.04621)

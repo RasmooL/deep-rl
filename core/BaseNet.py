@@ -8,8 +8,10 @@ of the MIT license. See the LICENSE.txt file for details.
 import tensorflow as tf
 
 
-class BaseDQN(object):
+class BaseNet(object):
     def __init__(self, config):
+        self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
+                                                     log_device_placement=False))
         self.saver = tf.train.Saver()
 
         self.tensorboard = config['tensorboard']

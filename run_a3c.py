@@ -5,27 +5,28 @@ This software may be modified and distributed under the terms
 of the MIT license. Se the LICENSE.txt file for details.
 """
 
+import sys
+import time
 from sacred import Experiment
+from async.ActorCritic import ActorCritic
 from core.Emulator import Emulator
-from dqn.DoubleDQN import DoubleDQN
-from dqn.ParallelAgent import ParallelAgent
-
-ex = Experiment('double-dqn')
+from async.Agent import Agent
+ex = Experiment('a3c')
 
 
 @ex.config
 def net_config():
-    conv_layers = 3
-    conv_units = [32, 64, 64]
-    filter_sizes = [8, 4, 3]
-    strides = [4, 2, 1]
+    conv_layers = 2
+    conv_units = [16, 32]
+    filter_sizes = [8, 4]
+    strides = [4, 2]
     state_frames = 4
     fc_layers = 1
-    fc_units = [512]
+    fc_units = [256]
     in_width = 84
     in_height = 84
     discount = 0.99
-    device = '/gpu:0'
+    device = '/cpu:0'
     lr = 0.00025
     opt_decay = 0.95
     momentum = 0.0
@@ -56,10 +57,11 @@ def agent_config():
     eps_decay = 1e-6
     eps_min = 0.1
     batch_size = 32
-    train_start = 5e3
+    train_start = 5e2
     train_frames = 5e6
-    test_freq = 5e3
-    test_frames = 1e4
+    test_freq = 5e2
+    test_frames = 5e4
+    num_threads = 4
 
 
 @ex.command
@@ -68,7 +70,7 @@ def test(_config):
     _config['num_actions'] = emu.num_actions
     net = DoubleDQN(_config)
     net.load(_config['ckpt'])
-    agent = ParallelAgent(emu, net, _config)
+    agent = Agent(emu, net, _config)
     agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
 
     agent.test()
@@ -76,13 +78,13 @@ def test(_config):
 
 @ex.automain
 def main(_config, _log):
-    #sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
+    sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
     print _config
     emu = Emulator(_config)
     _config['num_actions'] = emu.num_actions
-    net = DoubleDQN(_config)
+    net = ActorCritic(_config)
 
-    agent = ParallelAgent(emu, net, _config)
+    agent = Agent(emu, net, _config)
 
     agent.train()
 
