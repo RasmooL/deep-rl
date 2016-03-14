@@ -17,7 +17,7 @@ Tentative list of potential features:
 ## How to run
 Install [Tensorflow](https://github.com/tensorflow/tensorflow) in Python 2.7.
 
-Install [Sacred]https://sacred.readthedocs.org/en/latest/index.html) (only necessary for supplied run scripts).
+Install [Sacred](https://sacred.readthedocs.org/en/latest/index.html) (only necessary for supplied run scripts, you can make your own).
 
 Install [ALE](https://github.com/mgbellemare/Arcade-Learning-Environment).
 
