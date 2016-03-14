@@ -1,6 +1,6 @@
 """
 Experimental agent implementation running separate threads for emulation and GPU training.
-NOTE: This does not seem to be much, if any, faster. It might get deleted.
+This is slightly (estimate ~20%) faster than the sequential implementation, but results might be different.
 
 Copyright 2016 Rasmus Larsen
 
@@ -69,8 +69,6 @@ class ParallelAgent(Agent):
                     self.net.sync_target()
                 if self.steps % self.test_freq == 0:
                     self.test()
-                if self.steps % self.save_freq == 0:
-                    self.net.save(self.steps)
 
                 self.steps += 1
                 if self.steps % 100 == 0:  # TODO: remove, just for debugging
