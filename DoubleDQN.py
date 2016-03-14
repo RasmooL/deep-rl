@@ -1,4 +1,6 @@
 """
+DQN with Double Q-learning as in "Deep Reinforcement Learning with Double Q-learning" by van Hasselt et al.
+
 Copyright 2016 Rasmus Larsen
 
 This software may be modified and distributed under the terms

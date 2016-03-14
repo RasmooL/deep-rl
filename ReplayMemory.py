@@ -1,4 +1,6 @@
 """
+Replay memory with uniform minibatch sampling, implementation inspired by Tambet Matiisen's "Simple DQN".
+
 Copyright 2016 Rasmus Larsen
 
 This software may be modified and distributed under the terms
@@ -10,10 +12,6 @@ import random
 
 
 class ReplayMemory(object):
-    """
-    Replay memory with uniform minibatch sampling, implementation inspired by Tambet Matiisen's "Simple DQN".
-    """
-
     def __init__(self, config):
         self.width = config['in_width']
         self.height = config['in_height']

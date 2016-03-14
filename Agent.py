@@ -9,6 +9,7 @@ from ReplayMemory import ReplayMemory
 import random
 import numpy as np
 
+
 class Agent(object):
     def __init__(self, emu, net, config):
         self.mem = ReplayMemory(config)
@@ -20,7 +21,7 @@ class Agent(object):
         self.eps_min = config['eps_min']
 
         self.train_start = config['train_start']
-        self.train_frames = config['train_frames'] + self.train_start
+        self.train_frames = config['train_frames']
         self.test_freq = config['test_freq']
         self.test_frames = config['test_frames']
 
@@ -62,21 +63,20 @@ class Agent(object):
         return reward, t
 
     def train(self):
+        for i in xrange(int(self.train_start)):  # wait for replay memory to fill
+            self.next(random.randrange(self.emu.num_actions))
         while self.steps < self.train_frames:
-            if self.steps < self.train_start:
-                self.next(random.randrange(self.emu.num_actions))
-            else:
-                if self.steps % self.target_sync == 0:
-                    self.net.sync_target()
-                if self.steps % self.test_freq == 0:
-                    self.test()
-                if self.steps % self.save_freq == 0:
-                    self.net.save(self.steps)
+            if self.steps % self.target_sync == 0:
+                self.net.sync_target()
+            if self.steps % self.test_freq == 0:
+                self.test()
+            if self.steps % self.save_freq == 0:
+                self.net.save(self.steps)
 
-                self.eps_greedy()
-                s, a, r, ns, t = self.mem.get_minibatch()
-                a = self.emu.onehot_actions(a)  # necessary due to tensorflow not having proper indexing
-                cost = self.net.train(s, a, r, ns, t)
+            self.eps_greedy()
+            s, a, r, ns, t = self.mem.get_minibatch()
+            a = self.emu.onehot_actions(a)  # necessary due to tensorflow not having proper indexing
+            cost = self.net.train(s, a, r, ns, t)
 
             self.steps += 1
             if self.steps % 100 == 0:  # TODO: remove, just for debugging
