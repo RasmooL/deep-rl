@@ -19,11 +19,11 @@ class BaseDQN(object):
 
         self.sess.run(tf.initialize_all_variables())
 
-    def save(self, n):
-        self.saver.save(self.sess, "save/model_" + str(n) + ".ckpt")
+    def save(self, name):
+        self.saver.save(self.sess, "save/model_" + name + ".ckpt")
 
-    def load(self, n):
-        self.saver.restore(self.sess, "save/model_" + str(n) + ".ckpt")
+    def load(self, name):
+        self.saver.restore(self.sess, "save/" + name + ".ckpt")
 
     @staticmethod
     def make_weight(shape):

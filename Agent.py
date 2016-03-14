@@ -16,6 +16,8 @@ class Agent(object):
         self.emu = emu
         self.net = net
 
+        self.rom_name = config['rom_name']
+
         self.eps = config['eps']
         self.eps_decay = config['eps_decay']
         self.eps_min = config['eps_min']
@@ -26,8 +28,8 @@ class Agent(object):
         self.test_frames = config['test_frames']
 
         self.target_sync = config['target_sync']
-        self.save_freq = config['save_freq']
 
+        self.max_reward = -np.inf
         self.steps = 0
 
     def get_eps(self):
@@ -70,8 +72,6 @@ class Agent(object):
                 self.net.sync_target()
             if self.steps % self.test_freq == 0:
                 self.test()
-            if self.steps % self.save_freq == 0:
-                self.net.save(self.steps)
 
             self.eps_greedy()
             s, a, r, ns, t = self.mem.get_minibatch()
@@ -99,7 +99,12 @@ class Agent(object):
 
         print 'Total reward: ' + str(total_r)
         print 'Episodes: ' + str(total_eps)
-        print 'Avg. reward: ' + str(float(total_r) / total_eps)
+        avg_reward = float(total_r) / total_eps
+        print 'Avg. reward: ' + str(avg_reward)
+
+        if avg_reward > self.max_reward:
+            self.net.save(self.rom_name)
+            self.max_reward = avg_reward
 
 
 

@@ -57,11 +57,10 @@ def agent_config():
     eps_decay = 1e-6
     eps_min = 0.1
     batch_size = 32
-    train_start = 5e3
+    train_start = 5e2
     train_frames = 5e6
-    test_freq = 5e3
-    test_frames = 5e4
-    save_freq = 5e4
+    test_freq = 5e2
+    test_frames = 5e2
 
 
 @ex.command
