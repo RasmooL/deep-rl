@@ -1,5 +1,6 @@
 """
 Experimental agent implementation running separate threads for emulation and GPU training.
+NOTE: This does not seem to be much, if any, faster. It might get deleted.
 
 Copyright 2016 Rasmus Larsen
 

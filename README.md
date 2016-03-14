@@ -7,12 +7,12 @@ Later some personal novel techniques might be implemented.
 ## Project plan
 Currently implemented:
 - Vanilla DQN
-- Double Q-learning
+- [Double Q-learning](http://arxiv.org/abs/1509.06461)
 
 Tentative list of potential features:
 - Bootstrapping
-- Prioritized experience replay
-- Asynchronous actor-critic
+- [Prioritized experience replay](http://arxiv.org/abs/1511.05952)
+- [Asynchronous actor-critic](http://arxiv.org/abs/1602.01783)
 
 ## How to run
 Install [Tensorflow](https://github.com/tensorflow/tensorflow) in Python 2.7.
