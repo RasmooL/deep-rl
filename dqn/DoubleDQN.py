@@ -11,15 +11,18 @@ import tensorflow as tf
 from core.BaseNet import BaseNet
 
 
-# TODO: Not implemented
 class DoubleDQN(BaseNet):
     def __init__(self, config):
         with tf.device(config['device']):
             tf.set_random_seed(config['random_seed'])
 
             # placeholders
-            self.state = tf.placeholder("float", [None, config['in_width'], config['in_height'], 4], name='state')
-            self.nstate = tf.placeholder("float", [None, config['in_width'], config['in_height'], 4], name='nstate')
+            self.state = tf.placeholder("float",
+                                        [None, config['in_width'], config['in_height'], config['state_frames']],
+                                        name='state')
+            self.nstate = tf.placeholder("float",
+                                         [None, config['in_width'], config['in_height'], config['state_frames']],
+                                         name='nstate')
             self.rewards = tf.placeholder("float", [None], name='rewards')
             self.actions = tf.placeholder("float", [None, config['num_actions']], name='actions')  # one-hot
             self.terminals = tf.placeholder("float", [None], name='terminals')

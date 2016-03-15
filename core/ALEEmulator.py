@@ -11,7 +11,7 @@ import cv2
 import random
 
 
-class Emulator(object):
+class ALEEmulator(object):
     def __init__(self, config):
         self.ale = ALEInterface()
 

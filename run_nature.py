@@ -8,7 +8,7 @@ of the MIT license. Se the LICENSE.txt file for details.
 import sys
 import time
 from sacred import Experiment
-from core.Emulator import Emulator
+from core.ALEEmulator import ALEEmulator
 from dqn.Agent import Agent
 from dqn.NatureDQN import NatureDQN
 
@@ -65,7 +65,7 @@ def agent_config():
 
 @ex.command
 def test(_config):
-    emu = Emulator(_config)
+    emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
     net = NatureDQN(_config)
     net.load(_config['ckpt'])
@@ -79,7 +79,7 @@ def test(_config):
 def main(_config, _log):
     sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
     print _config
-    emu = Emulator(_config)
+    emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
     net = NatureDQN(_config)
 

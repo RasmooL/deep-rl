@@ -2,14 +2,13 @@
 Copyright 2016 Rasmus Larsen
 
 This software may be modified and distributed under the terms
-of the MIT license. Se the LICENSE.txt file for details.
+of the MIT license. See the LICENSE.txt file for details.
 """
 
 import sys
 import time
 from sacred import Experiment
-from async.ActorCritic import ActorCritic
-from core.Emulator import Emulator
+from core.ALEEmulator import ALEEmulator
 from async.Agent import Agent
 ex = Experiment('a3c')
 
@@ -42,7 +41,7 @@ def net_config():
 def emu_config():
     rom_path = '../ale-git/roms/'
     rom_name = 'breakout'
-    display_screen = True
+    display_screen = False
     frame_skip = 4
     repeat_prob = 0.0
     color_avg = True
@@ -52,39 +51,24 @@ def emu_config():
 
 @ex.config
 def agent_config():
-    hist_size = 1e5
     eps = 1.0
     eps_decay = 1e-6
     eps_min = 0.1
-    batch_size = 32
-    train_start = 5e2
-    train_frames = 5e6
+    max_updates = 5e6
     test_freq = 5e2
     test_frames = 5e4
     num_threads = 4
-
-
-@ex.command
-def test(_config):
-    emu = Emulator(_config)
-    _config['num_actions'] = emu.num_actions
-    net = DoubleDQN(_config)
-    net.load(_config['ckpt'])
-    agent = Agent(emu, net, _config)
-    agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
-
-    agent.test()
+    n_step = 5
 
 
 @ex.automain
-def main(_config, _log):
-    sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
+def main(_config):
+    #sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
+    tmp_emu = ALEEmulator(_config)
+    _config['num_actions'] = tmp_emu.num_actions
     print _config
-    emu = Emulator(_config)
-    _config['num_actions'] = emu.num_actions
-    net = ActorCritic(_config)
 
-    agent = Agent(emu, net, _config)
+    agent = Agent(_config)
 
     agent.train()
 

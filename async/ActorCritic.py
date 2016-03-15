@@ -1,11 +1,10 @@
 """
 Asynchronous advantage actor-critic as in "Asynchronous Methods for Deep Reinforcement Learning" by Mnih et al.
 
-
 Copyright 2016 Rasmus Larsen
 
 This software may be modified and distributed under the terms
-of the MIT license. Se the LICENSE.txt file for details.
+of the MIT license. See the LICENSE.txt file for details.
 """
 
 import tensorflow as tf
@@ -18,15 +17,14 @@ class ActorCritic(BaseNet):
             tf.set_random_seed(config['random_seed'])
 
             # placeholders
-            self.state = tf.placeholder("float", [None, config['in_width'], config['in_height'], 4], name='state')
-            self.nstate = tf.placeholder("float", [None, config['in_width'], config['in_height'], 4], name='nstate')
+            self.states = tf.placeholder("float",
+                                         [None, config['in_width'], config['in_height'], config['state_frames']],
+                                         name='state')
             self.rewards = tf.placeholder("float", [None], name='rewards')
-            self.actions = tf.placeholder("float", [None, config['num_actions']], name='actions')  # one-hot
+            self.actions = tf.placeholder("int64", [None, config['num_actions']], name='actions')  # one-hot
             self.terminals = tf.placeholder("float", [None], name='terminals')
 
-            outputs = [self.state]
-            outputs_target = [self.nstate]
-            self.assign_ops = []
+            outputs = [self.states]
 
             # region make conv layers
             for n in range(config['conv_layers']):
@@ -41,18 +39,6 @@ class ActorCritic(BaseNet):
                     conv = tf.nn.bias_add(conv, b)
                     conv = tf.nn.relu(conv, name=scope.name)
                     outputs.append(conv)
-
-                    # target network and assign ops
-                    W_target = tf.Variable(W.initialized_value(), trainable=False)
-                    b_target = tf.Variable(b.initialized_value(), trainable=False)
-                    conv_target = self.conv2d(outputs_target[-1], W_target, config['strides'][n])
-                    conv_target = tf.nn.bias_add(conv_target, b_target)
-                    conv_target = tf.nn.relu(conv_target, name=scope.name + '_target')
-                    outputs_target.append(conv_target)
-                    W_op = W_target.assign(W)
-                    b_op = b_target.assign(b)
-                    self.assign_ops.append(W_op)
-                    self.assign_ops.append(b_op)
             # endregion make conv layers
 
             # region make fc layers
@@ -62,9 +48,6 @@ class ActorCritic(BaseNet):
             self.reshape = tf.reshape(outputs[-1], [-1, conv_neurons], name='reshape')
             outputs.append(self.reshape)
 
-            self.reshape_target = tf.reshape(outputs_target[-1], [-1, conv_neurons], name='reshape_target')
-            outputs_target.append(self.reshape_target)
-
             for n in range(config['fc_layers']):
                 with tf.variable_scope('fc' + str(n)) as scope:
                     shape = [conv_neurons if n == 0 else config['fc_units'][n-1],
@@ -73,60 +56,61 @@ class ActorCritic(BaseNet):
                     b = self.make_bias(config['fc_units'][n])
                     fc = tf.nn.relu_layer(outputs[-1], W, b, name=scope.name)
                     outputs.append(fc)
-
-                    # target network and assign ops
-                    W_target = tf.Variable(W.initialized_value(), trainable=False)
-                    b_target = tf.Variable(b.initialized_value(), trainable=False)
-                    fc_target = tf.nn.relu_layer(outputs_target[-1], W_target, b_target, name=scope.name + '_target')
-                    outputs_target.append(fc_target)
-                    W_op = W_target.assign(W)
-                    b_op = b_target.assign(b)
-                    self.assign_ops.append(W_op)
-                    self.assign_ops.append(b_op)
             # endregion make fc layers
 
             # region output layer
-            with tf.variable_scope('output') as scope:
+            with tf.variable_scope('output_value') as scope:
                 shape = [config['fc_units'][-1],
                          config['num_actions']]
                 W = self.make_weight(shape)
                 b = self.make_bias(config['num_actions'])
-                self.Q = tf.nn.bias_add(tf.matmul(outputs[-1], W), b, name=scope.name + '_Q')
-                outputs.append(self.Q)
-                self.argmax_Q = tf.argmax(self.Q, dimension=0, name=scope.name + '_argmax_Q')
-                outputs.append(self.argmax_Q)
-
-                # target network and assign ops
-                W_target = tf.Variable(W.initialized_value(), trainable=False)
-                b_target = tf.Variable(b.initialized_value(), trainable=False)
-                self.Q_target = tf.nn.bias_add(tf.matmul(outputs_target[-1],
-                                                         W_target), b_target, name=scope.name + '_Q_target')
-                outputs_target.append(self.Q_target)
-                self.max_Q_target = tf.reduce_max(self.Q_target, 1, name=scope.name + '_max_Q_target')
-                W_op = W_target.assign(W)
-                b_op = b_target.assign(b)
-                self.assign_ops.append(W_op)
-                self.assign_ops.append(b_op)
+                self.V = tf.nn.bias_add(tf.matmul(outputs[-1], W), b, name=scope.name + '_V')
+            with tf.variable_scope('output_policy') as scope:
+                Wp = self.make_weight(shape)
+                bp = self.make_bias(config['num_actions'])
+                lp = tf.nn.bias_add(tf.matmul(outputs[-1], Wp), bp, name=scope.name + '_lp')
+                self.policy = tf.nn.softmax(lp, name='_policy')
+                self.log_policy = tf.log(self.policy, name='_log_policy') # no logsoftmax kernel yet...
+                self.argmax_policy = tf.argmax(self.policy, dimension=1)
             # endregion output layer
 
             # region cost
-            self.discount = tf.constant(config['discount'])
-            self.y = tf.add(self.rewards, tf.mul(self.discount, tf.mul(tf.sub(1.0, self.terminals), self.max_Q_target)))
-            self.Q_action = tf.reduce_sum(tf.mul(self.Q, self.actions), reduction_indices=1)  # TODO: see Tensorflow#206
+                diff = tf.sub(self.rewards, self.V)
+                self.cost_V = tf.square(diff)
 
-            # td error clipping
-            self.clip_delta = tf.constant(config['clip_delta'])
-            self.diff = tf.sub(self.y, self.Q_action)
-            self.quadratic_part = tf.minimum(tf.abs(self.diff), self.clip_delta)
-            self.linear_part = tf.sub(tf.abs(self.diff), self.quadratic_part)
-            self.clipped_diff = tf.add(0.5 * tf.square(self.quadratic_part),
-                                       tf.mul(self.clip_delta, self.linear_part))
-            self.cost = tf.reduce_sum(self.clipped_diff, reduction_indices=0)
+                onehot_actions = tf.one_hot(self.actions, config['num_actions'], 1.0, 0.0)
+                log_p_ai_si = tf.reduce_sum(tf.mul(self.log_policy, onehot_actions), reduction_indices=1)
+                self.cost_P = log_p_ai_si * diff
             # endregion cost
 
-            self.optimize_op = tf.train.RMSPropOptimizer(config['lr'], config['opt_decay'],
-                                                         config['momentum'], config['opt_eps']).minimize(self.cost)
+            self.optimizer = tf.train.RMSPropOptimizer(config['lr'], config['opt_decay'],
+                                                       config['momentum'], config['opt_eps'])
+            self.opt_V = self.optimizer.minimize(self.cost_V)
+            self.opt_P = self.optimizer.minimize(self.cost_P)
 
         super(ActorCritic, self).__init__(config)
+
+    def get_copy(self, namespace):
+        new_graph = tf.Graph()
+        # TODO: implement NetCopier and get this function to return a full network copy
+        return NetCopier()
+
+    def train(self, states, actions, rewards):
+        feed_dict = {self.states: states, self.actions: actions, self.rewards: rewards}
+        cost_V, cost_P = self.sess.run([self.opt_V, self.opt_P], feed_dict)
+        return cost_V, cost_P
+
+    def predict(self, states):
+        feed_dict = {self.states: states}
+        a, V = self.sess.run([self.argmax_policy, self.V], feed_dict)
+        return a, V
+
+
+class NetCopier(ActorCritic):
+    def __init__(self):
+        raise NotImplementedError()
+
+
+
 
 
