@@ -61,11 +61,13 @@ class ActorCritic(BaseNet):
             # region output layer
             with tf.variable_scope('output_value') as scope:
                 shape = [config['fc_units'][-1],
-                         config['num_actions']]
+                         1]
                 W = self.make_weight(shape)
-                b = self.make_bias(config['num_actions'])
+                b = self.make_bias([1])
                 self.V = tf.nn.bias_add(tf.matmul(outputs[-1], W), b, name=scope.name + '_V')
             with tf.variable_scope('output_policy') as scope:
+                shape = [config['fc_units'][-1],
+                         config['num_actions']]
                 Wp = self.make_weight(shape)
                 bp = self.make_bias(config['num_actions'])
                 lp = tf.nn.bias_add(tf.matmul(outputs[-1], Wp), bp, name=scope.name + '_lp')
