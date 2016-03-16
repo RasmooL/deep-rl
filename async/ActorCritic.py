@@ -79,14 +79,17 @@ class ActorCritic(BaseNet):
                 self.cost_V = tf.square(diff)
 
                 onehot_actions = tf.one_hot(self.actions, config['num_actions'], 1.0, 0.0)
-                log_p_ai_si = tf.reduce_sum(tf.mul(self.log_policy, onehot_actions), reduction_indices=1)
-                self.cost_P = log_p_ai_si * diff
+                log_p_ai = tf.reduce_sum(tf.mul(self.log_policy, onehot_actions), reduction_indices=1)
+                # self.cost_P = log_p_ai * diff
+                # NOTE: should check that this is correct, but I think that the gradient that goes
+                # to self.V through diff should be stopped (or we train value weights using policy cost)
+                self.cost_P = tf.mul(log_p_ai, tf.stop_gradient(diff))  # pretend diff is a constant
             # endregion cost
 
             self.optimizer = tf.train.RMSPropOptimizer(config['lr'], config['opt_decay'],
                                                        config['momentum'], config['opt_eps'])
             self.opt_V = self.optimizer.minimize(self.cost_V)
-            self.opt_P = self.optimizer.minimize(self.cost_P)
+            self.opt_P = self.optimizer.minimize(self.cost_P)  # TODO: wait.. should we maximize?
 
         super(ActorCritic, self).__init__(config)
 
