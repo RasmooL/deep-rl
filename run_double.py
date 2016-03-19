@@ -56,8 +56,8 @@ def emu_config():
 def agent_config():
     hist_size = 1e5
     eps = 1.0
-    eps_decay = 1e-6
     eps_min = 0.1
+    eps_decay = (eps - eps_min) / 1e6
     batch_size = 32
     train_start = 5e2
     train_frames = 5e6
