@@ -11,7 +11,9 @@ import tensorflow as tf
 class BaseNet(object):
     def __init__(self, config):
         self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
-                                                     log_device_placement=False))
+                                                     log_device_placement=False,
+                                                     inter_op_parallelism_threads=4,
+                                                     intra_op_parallelism_threads=4))  # TF uses all cores by default...
         self.saver = tf.train.Saver()
 
         self.tensorboard = config['tensorboard']
