@@ -62,7 +62,7 @@ def agent_config():
     train_start = 5e2
     train_frames = 5e6
     test_freq = 5e2
-    test_frames = 5e4
+    test_frames = 5e2
 
 
 @ex.command
@@ -80,7 +80,7 @@ def test(_config):
 @ex.automain
 def main(_config, _log):
     sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
-    print _config
+    print "#{}".format(_config)
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
     net = DoubleDQN(_config)

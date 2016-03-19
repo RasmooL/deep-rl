@@ -79,11 +79,8 @@ class Agent(object):
             cost = self.net.train(s, a, r, ns, t)
 
             self.steps += 1
-            if self.steps % 100 == 0:  # TODO: remove, just for debugging
-                print 'step ' + str(self.steps)
 
     def test(self):
-        print 'Test @ frame ' + str(self.steps)
         test_steps = 0
         self.emu.new_random_game()
         total_eps = 1
@@ -94,13 +91,9 @@ class Agent(object):
             if t:
                 total_eps += 1
             test_steps += 1
-            if test_steps % 100 == 0:  # TODO: remove, just for debugging
-                print 'test_step ' + str(test_steps)
 
-        print 'Total reward: ' + str(total_r)
-        print 'Episodes: ' + str(total_eps)
         avg_reward = float(total_r) / total_eps
-        print 'Avg. reward: ' + str(avg_reward)
+        print "{0} {1}".format(self.steps, avg_reward)
 
         if avg_reward > self.max_reward:
             self.net.save(self.rom_name)

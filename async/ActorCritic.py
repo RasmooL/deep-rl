@@ -1,5 +1,6 @@
 """
 Asynchronous advantage actor-critic as in "Asynchronous Methods for Deep Reinforcement Learning" by Mnih et al.
+NOTE: Not implemented, and not being worked on currently.
 
 Copyright 2016 Rasmus Larsen
 
@@ -77,15 +78,15 @@ class ActorCritic(BaseNet):
             # endregion output layer
 
             # region cost
-                diff = tf.sub(self.rewards, self.V)
-                self.cost_V = tf.square(diff)
+                diff = tf.sub(self.rewards, self.V)  # this is the advantage function
+                self.cost_V = tf.square(diff)  # also the cost to minimize for the value network
 
                 onehot_actions = tf.one_hot(self.actions, config['num_actions'], 1.0, 0.0)
                 log_p_ai = tf.reduce_sum(tf.mul(self.log_policy, onehot_actions), reduction_indices=1)
                 # self.cost_P = log_p_ai * diff
                 # NOTE: should check that this is correct, but I think that the gradient that goes
                 # to self.V through diff should be stopped (or we train value weights using policy cost)
-                self.cost_P = tf.mul(log_p_ai, tf.stop_gradient(diff))  # pretend diff is a constant
+                self.cost_P = tf.mul(log_p_ai, tf.stop_gradient(diff))  # pretend diff is a constant for bp
             # endregion cost
 
             self.optimizer = tf.train.RMSPropOptimizer(config['lr'], config['opt_decay'],
