@@ -63,6 +63,7 @@ def agent_config():
     train_frames = 5e6
     test_freq = 5e2
     test_frames = 5e2
+    update_freq = 4
 
 
 @ex.command

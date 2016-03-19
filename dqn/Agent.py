@@ -24,6 +24,7 @@ class Agent(object):
 
         self.train_start = config['train_start']
         self.train_frames = config['train_frames']
+        self.update_freq = config['update_freq']
         self.test_freq = config['test_freq']
         self.test_frames = config['test_frames']
 
@@ -74,9 +75,11 @@ class Agent(object):
                 self.test()
 
             self.eps_greedy()
-            s, a, r, ns, t = self.mem.get_minibatch()
-            a = self.emu.onehot_actions(a)  # necessary due to tensorflow not having proper indexing
-            cost = self.net.train(s, a, r, ns, t)
+
+            if self.steps % self.update_freq == 0:
+                s, a, r, ns, t = self.mem.get_minibatch()
+                a = self.emu.onehot_actions(a)  # necessary due to tensorflow not having proper indexing
+                cost = self.net.train(s, a, r, ns, t)
 
             self.steps += 1
 
