@@ -41,7 +41,8 @@ class ALEEmulator(object):
     def new_random_game(self):
         self.new_game()
         for i in range(random.randint(0, self.max_random_steps)):
-            self.act(random.randint(0, self.num_actions - 1))
+            # self.act(random.randint(0, self.num_actions - 1))
+            self.act(0)  # NOTE: not random action in Nature paper, but no-op
             if self.terminal():
                 print "Episode terminated during random start."
                 self.new_random_game()
