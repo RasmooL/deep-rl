@@ -59,9 +59,9 @@ def agent_config():
     eps_min = 0.1
     eps_decay = (eps - eps_min) / 1e6
     batch_size = 32
-    train_start = 5e2
+    train_start = 5e3
     train_frames = 5e6
-    test_freq = 5e2
+    test_freq = 5e4
     test_frames = 5e2
     update_freq = 4
 

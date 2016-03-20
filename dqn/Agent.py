@@ -39,13 +39,14 @@ class Agent(object):
     def next(self, action):
         reward = self.emu.act(self.emu.actions[action])
         # clip reward
+        clipped_reward = reward
         if reward > 1.0:
-            reward = 1.0
+            clipped_reward = 1.0
         elif reward < -1.0:
-            reward = -1.0
+            clipped_reward = -1.0
         screen = self.emu.get_screen_gray()
         t = self.emu.terminal()
-        self.mem.add(screen, action, reward, t)
+        self.mem.add(screen, action, clipped_reward, t)
         if t:
             self.emu.new_random_game()
         return reward, t
