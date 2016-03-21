@@ -37,7 +37,6 @@ def net_config():
     clip_delta = 1.0
     tensorboard = False
     tensorboard_freq = 50
-    ckpt = 0
 
 
 @ex.config
@@ -49,7 +48,7 @@ def emu_config():
     repeat_prob = 0.0
     color_avg = True
     random_seed = 42
-    random_start = 10
+    random_start = 30
 
 
 @ex.config
@@ -62,7 +61,7 @@ def agent_config():
     train_start = 5e3
     train_frames = 5e6
     test_freq = 5e4
-    test_frames = 5e2
+    test_frames = 5e3
     update_freq = 4
 
 
@@ -71,7 +70,7 @@ def test(_config):
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
     net = DoubleDQN(_config)
-    net.load(_config['ckpt'])
+    net.load(_config['rom_name'])
     agent = Agent(emu, net, _config)
     agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
 

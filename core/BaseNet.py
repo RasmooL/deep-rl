@@ -27,7 +27,7 @@ class BaseNet(object):
         self.saver.save(self.sess, "save/model_" + name + ".ckpt")
 
     def load(self, name):
-        self.saver.restore(self.sess, "save/" + name + ".ckpt")
+        self.saver.restore(self.sess, "save/model_" + name + ".ckpt")
 
     @staticmethod
     def make_weight(shape):
