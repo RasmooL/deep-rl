@@ -42,7 +42,7 @@ def net_config():
 def emu_config():
     rom_path = '../ale-git/roms/'
     rom_name = 'breakout'
-    display_screen = False
+    display_screen = True
     frame_skip = 4
     repeat_prob = 0.0
     color_avg = True
@@ -57,10 +57,11 @@ def agent_config():
     eps_decay = 1e-6
     eps_min = 0.1
     batch_size = 32
-    train_start = 5e3
+    train_start = 5e2
     train_frames = 5e6
-    test_freq = 5e4
-    test_frames = 5e4
+    test_freq = 5e2
+    test_frames = 5e2
+    update_freq = 4
 
 
 @ex.command

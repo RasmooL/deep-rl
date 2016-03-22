@@ -10,6 +10,7 @@ Currently implemented:
 - [Double Q-learning](http://arxiv.org/abs/1509.06461): dqn.DoubleDQN.py & run_double.py
 
 Tentative list of potential features:
+- [Dueling network](http://arxiv.org/pdf/1511.06581v2.pdf)
 - [Bootstrapping](http://arxiv.org/abs/1602.04621)
 - [Prioritized experience replay](http://arxiv.org/abs/1511.05952)
 - [Asynchronous actor-critic](http://arxiv.org/abs/1602.01783)

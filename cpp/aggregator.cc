@@ -5,14 +5,21 @@ using namespace tensorflow;
 REGISTER_OP("Aggregator")
     .Input("value: float32")
     .Input("advantage: float32")
-    .Output("Q: float32");
+    .Output("q: float32");
 
 class AggregatorOp : public OpKernel {
 public:
     explicit AggregatorOp(OpKernelConstruction* context) : OpKernel(context) {}
 
     void Compute(OpKernelContext* context) override {
-    // TODO: make Aggregate op
+	const Tensor& value_tensor = context->input(0);
+	const Tensor& advantage_tensor = context->input(1);
+
+	// allocate output tensor
+    	Tensor* Q_tensor = NULL;
+    	OP_REQUIRES_OK(context, context->allocate_output(0, advantage_tensor.shape(), &Q_tensor));
+
+    	// TODO: finish Aggregator op
     }
 };
 

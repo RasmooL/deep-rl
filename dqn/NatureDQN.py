@@ -94,7 +94,7 @@ class NatureDQN(BaseNet):
                 b = self.make_bias(config['num_actions'])
                 self.Q = tf.nn.bias_add(tf.matmul(outputs[-1], W), b, name=scope.name + '_Q')
                 outputs.append(self.Q)
-                self.argmax_Q = tf.argmax(self.Q, dimension=0, name=scope.name + '_argmax_Q')
+                self.argmax_Q = tf.argmax(self.Q, dimension=1, name=scope.name + '_argmax_Q')
                 outputs.append(self.argmax_Q)
 
                 # target network and assign ops
