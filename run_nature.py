@@ -60,7 +60,7 @@ def agent_config():
     train_start = 5e4
     train_frames = 5e7
     test_freq = 2.5e5
-    test_frames = 2e2
+    test_frames = 2e4
     update_freq = 4
 
 
@@ -69,7 +69,7 @@ def test(_config):
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
     net = NatureDQN(_config)
-    net.load(_config['ckpt'])
+    net.load(_config['rom_name'])
     agent = Agent(emu, net, _config)
     agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
 
