@@ -79,7 +79,7 @@ def test(_config):
 @ex.automain
 def main(_config, _log):
     sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
-    print _config
+    print "#{}".format(_config)
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
     net = NatureDQN(_config)
