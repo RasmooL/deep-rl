@@ -16,10 +16,10 @@ public:
 	const Tensor& advantage_tensor = context->input(1);
 
 	// allocate output tensor
-    	Tensor* Q_tensor = NULL;
-    	OP_REQUIRES_OK(context, context->allocate_output(0, advantage_tensor.shape(), &Q_tensor));
+    Tensor* Q_tensor = NULL;
+    OP_REQUIRES_OK(context, context->allocate_output(0, advantage_tensor.shape(), &Q_tensor));
 
-    	// TODO: finish Aggregator op
+    // TODO: finish Aggregator op
     }
 };
 
