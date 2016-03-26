@@ -42,3 +42,7 @@ class BaseNet(object):
     @staticmethod
     def conv2d(x, W, stride):
         return tf.nn.conv2d(x, W, strides=[1, stride, stride, 1], padding="SAME")
+
+    @staticmethod
+    def conv2d_transpose(x, W, shape, stride):
+        return tf.nn.conv2d_transpose(x, W, shape, strides=[1, stride, stride, 1], padding="SAME")

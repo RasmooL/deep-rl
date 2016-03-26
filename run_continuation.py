@@ -11,7 +11,8 @@ import time
 from sacred import Experiment
 from core.ALEEmulator import ALEEmulator
 from dqn.Agent import Agent
-from continuation.AtariNet import AtariNet
+from continuation.PTNet import PTNet
+import numpy as np
 
 ex = Experiment('continuation')
 
@@ -20,10 +21,10 @@ ex = Experiment('continuation')
 def net_config():
     conv_layers = 3
     conv_units = [32, 64, 64]
-    filter_sizes = [8, 4, 3]
+    filter_sizes = [8, 4, 2]
     strides = [4, 2, 1]
     hidden_units = 256
-    num_heads = 3
+    num_heads = 1
     gate_noise = 0.1
     sharpening_slope = 10
     in_width = 84
@@ -51,7 +52,7 @@ def emu_config():
 
 @ex.config
 def agent_config():
-    batch_size = 32
+    batch_size = 2
     train_start = 5e3
     train_frames = 5e6
     test_freq = 5e4
@@ -76,6 +77,12 @@ def main(_config, _log):
     print "#{}".format(_config)
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
-    net = AtariNet(_config)
+    net = PTNet(_config)
 
-
+    screen = emu.get_screen_rgb()
+    emu.act(1)
+    screen = screen[np.newaxis, :]
+    screen = np.append(screen, emu.get_screen_rgb()[np.newaxis, :], axis=0)
+    hidden = net.encode(screen)
+    gated, dist = net.gate(screen, [1])
+    print gated - hidden[0]
