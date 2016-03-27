@@ -11,7 +11,7 @@ import time
 from sacred import Experiment
 from core.ALEEmulator import ALEEmulator
 from dqn.Agent import Agent
-from continuation.OrigalNet import OriginalNet
+from continuation.OriginalNet import OriginalNet
 from core.ScreenBuffer import ScreenBuffer
 import numpy as np
 import cv2
