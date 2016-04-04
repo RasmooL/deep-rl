@@ -52,13 +52,13 @@ def emu_config():
 
 @ex.config
 def agent_config():
-    hist_size = 1e5
+    hist_size = 1e6
     eps = 1.0
     batch_size = 32
-    train_start = 5e2
-    train_frames = 5e5
+    train_start = 5e4
+    train_frames = 5e7
     test_freq = 2.5e5
-    test_frames = 2e2
+    test_frames = 2e4
     update_freq = 4
 
 
