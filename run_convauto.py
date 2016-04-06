@@ -10,8 +10,7 @@ import time
 
 from sacred import Experiment
 from core.ALEEmulator import ALEEmulator
-from dqn.Agent import Agent
-from continuation.OriginalNet import OriginalNet
+from exp.ConvAuto import ConvAuto
 from core.ScreenBuffer import ScreenBuffer
 import numpy as np
 import cv2
@@ -21,20 +20,17 @@ ex = Experiment('convauto')
 
 @ex.config
 def net_config():
-    conv_layers = 3
-    conv_units = [32, 64, 64]
-    filter_sizes = [8, 4, 2]
-    strides = [4, 2, 1]
+    conv_layers = 1
+    conv_units = [16]
+    filter_sizes = [10]
+    strides = [5]
     hidden_units = 512
-    num_heads = 3
-    gate_noise = 0.01
-    sharpening_slope = 10
-    in_width = 84
-    in_height = 84
+    in_width = 210
+    in_height = 160
     device = '/gpu:0'
-    lr = 0.0001
-    opt_decay = 0.95
-    momentum = 0.5
+    lr = 0.0002
+    opt_decay = 0.99
+    momentum = 0.0
     opt_eps = 0.01
     tensorboard = False
     tensorboard_freq = 50
@@ -55,34 +51,28 @@ def emu_config():
 @ex.config
 def agent_config():
     batch_size = 16
+    update_freq = 2
     train_start = 5e3
     train_frames = 5e6
     test_freq = 5e4
     test_frames = 5e3
     save_freq = 5e3
 
-
 @ex.command
 def test(_config):
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
-    net = DoubleDQN(_config)
-    net.load(_config['rom_name'])
-    agent = Agent(emu, net, _config)
-    agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
-
-    agent.test()
+    net = ConvAuto(_config)
+    net.load('autoconv')
 
 
 @ex.automain
 def main(_config, _log):
-    sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
+    #sys.stdout = open('log_' + _config['rom_name'] + time.strftime('%H%M%d%m', time.gmtime()), 'w', buffering=True)
     print "#{}".format(_config)
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
-    net = OriginalNet(_config)
-
-    net.load('cont')
+    net = ConvAuto(_config)
 
     cv2.startWindowThread()
     cv2.namedWindow("prediction")
@@ -91,27 +81,22 @@ def main(_config, _log):
     buf = ScreenBuffer(_config, _config['batch_size'])
     for n in range(_config['batch_size']):
         emu.act(emu.actions[np.random.randint(0, emu.num_actions)])  # act randomly
-        buf.insert(emu.get_screen_rgb())
+        buf.insert(emu.get_screen_rgb_full())
     # train
-    step = 100000
+    step = 0
     while step < _config['train_frames']:
-        cost = net.train(buf.get(), [step])
-        print step, cost
-
-        # predict next frame
-        hidden = net.encode(buf.get()[np.newaxis, -1])
-        pred = net.predict_from_hidden(hidden)
+        if step % _config['update_freq'] == 0:
+            cost, recon = net.train(buf.get(), [step])
+            print step, cost
+            cv2.imshow('prediction', cv2.resize(recon[0], (210, 160)))
 
         emu.act(emu.actions[np.random.randint(0, emu.num_actions)])  # act randomly
-        buf.insert(emu.get_screen_rgb())
-
-        # display difference between prediction and true frame
-        cv2.imshow('prediction', cv2.resize(pred[0], (84 * 4, 84 * 4)))
+        buf.insert(emu.get_screen_rgb_full())
 
         if emu.terminal():
             emu.new_game()
         if step % _config['save_freq'] == 0:
-            net.save('cont')
+            net.save('autoconv')
 
         step += 1
 

@@ -6,6 +6,8 @@ of the MIT license. See the LICENSE.txt file for details.
 """
 
 import tensorflow as tf
+import prettytensor as pt
+import core.deconv
 from core.BaseNet import BaseNet
 
 
@@ -28,6 +30,7 @@ class NatureDQN(BaseNet):
             outputs = [self.state]
             outputs_target = [self.nstate]
             self.assign_ops = []
+            self.conv = []
 
             # region make conv layers
             for n in range(config['conv_layers']):
@@ -42,6 +45,7 @@ class NatureDQN(BaseNet):
                     conv = tf.nn.bias_add(conv, b)
                     conv = tf.nn.relu(conv, name=scope.name)
                     outputs.append(conv)
+                    self.conv.append(conv)
 
                     # target network and assign ops
                     W_target = tf.Variable(W.initialized_value(), trainable=False)
@@ -54,6 +58,49 @@ class NatureDQN(BaseNet):
                     b_op = b_target.assign(b)
                     self.assign_ops.append(W_op)
                     self.assign_ops.append(b_op)
+
+                    # tensorboard
+                    if n == 0:  # just first layer
+                        for (i, img) in enumerate(tf.split(3, config['conv_units'][n], W)):
+                            img = tf.transpose(img, [2,0,1,3])
+                            tf.image_summary(scope.name + "/W" + str(i), img, max_images=4)
+
+            # deconv visualization with the same variables as conv
+            nlayer = 0  # layer to  visualize (0-based)
+            nmap = 7  # map to visualize (0-based)
+
+            conv_slice = tf.slice(self.conv[nlayer], [0, 0, 0, nmap], [1, -1, -1, 1])
+            conv_slice_units = 1
+            for d in conv_slice.get_shape()[1:].as_list():
+                conv_slice_units *= d
+            conv_slice_flat = tf.reshape(conv_slice, [conv_slice_units])
+            index_max = tf.argmax(conv_slice_flat, 0)
+            one_hot_index = tf.one_hot(index_max, conv_slice_units, 1.0, 0.0)
+            conv_slice_mask = tf.reshape(one_hot_index, conv_slice.get_shape())
+            zero_splits = tf.split(3, config['conv_units'][nlayer], tf.zeros_like(self.conv[nlayer]))
+            zero_splits[nmap] = tf.mul(conv_slice, conv_slice_mask)
+            zero_maps = tf.concat(3, zero_splits)
+            deconv_input = zero_maps
+
+            for n in range(nlayer+1)[::-1]:
+                with tf.variable_scope('conv' + str(n), reuse=True):
+                    shape = [config['filter_sizes'][n],
+                             config['filter_sizes'][n],
+                             config['state_frames'] if n == 0 else config['conv_units'][n-1],
+                             config['conv_units'][n]]
+                    W = self.make_weight(shape)
+                    b = self.make_bias(config['conv_units'][n])
+
+
+                    output_shape = tf.pack([tf.shape(self.state)[0],
+                                            tf.shape(deconv_input)[1] * config['strides'][n],
+                                            tf.shape(deconv_input)[2] * config['strides'][n],
+                                            config['state_frames'] if n == 0 else config['conv_units'][n-1]])
+                    strides = [1, config['strides'][n], config['strides'][n], 1]
+                    deconv = tf.nn.conv2d_transpose(deconv_input, W, output_shape, strides, "SAME")
+                    deconv = tf.nn.relu(deconv)
+                    deconv_input = deconv
+                    self.deconv = deconv
             # endregion make conv layers
 
             # region make fc layers
@@ -147,4 +194,7 @@ class NatureDQN(BaseNet):
 
         return argmax_Q
 
+    def visualize(self, s):
+        feed_dict = {self.state: s/255.0}
 
+        return self.sess.run(self.deconv, feed_dict)

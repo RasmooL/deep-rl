@@ -13,11 +13,11 @@ import random
 
 class ReplayMemory(object):
     def __init__(self, config):
-        self.width = config['in_width']
-        self.height = config['in_height']
-        self.max_size = config['hist_size']
-        self.state_frames = config['state_frames']
-        self.batch_size = config['batch_size']
+        self.width = int(config['in_width'])
+        self.height = int(config['in_height'])
+        self.max_size = int(config['hist_size'])
+        self.state_frames = int(config['state_frames'])
+        self.batch_size = int(config['batch_size'])
         self.states = np.empty([self.max_size, self.width, self.height], dtype=np.uint8)
         self.actions = np.empty([self.max_size], dtype=np.uint8)
         self.rewards = np.empty([self.max_size], dtype=np.uint32)

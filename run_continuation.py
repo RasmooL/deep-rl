@@ -10,7 +10,6 @@ import time
 
 from sacred import Experiment
 from core.ALEEmulator import ALEEmulator
-from dqn.Agent import Agent
 from continuation.OriginalNet import OriginalNet
 from core.ScreenBuffer import ScreenBuffer
 import numpy as np
@@ -22,10 +21,10 @@ ex = Experiment('continuation')
 @ex.config
 def net_config():
     conv_layers = 3
-    conv_units = [16, 32, 32]
+    conv_units = [32, 64, 64]
     filter_sizes = [8, 4, 2]
     strides = [4, 2, 1]
-    hidden_units = 256
+    hidden_units = 512
     num_heads = 3
     gate_noise = 0.01
     sharpening_slope = 10
@@ -60,18 +59,6 @@ def agent_config():
     test_freq = 5e4
     test_frames = 5e3
     save_freq = 5e3
-
-
-@ex.command
-def test(_config):
-    emu = ALEEmulator(_config)
-    _config['num_actions'] = emu.num_actions
-    net = DoubleDQN(_config)
-    net.load(_config['rom_name'])
-    agent = Agent(emu, net, _config)
-    agent.next(0)  # put a frame into the replay memory, TODO: should not be necessary
-
-    agent.test()
 
 
 @ex.automain

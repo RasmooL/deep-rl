@@ -35,6 +35,7 @@ class deconv2d(prettytensor.VarStoreMethod):
                activation_fn=None,
                l2loss=None,
                init=None,
+               bias_init=None,
                stddev=None,
                bias=True,
                edges=PAD_SAME,
@@ -91,7 +92,7 @@ class deconv2d(prettytensor.VarStoreMethod):
     elif stddev is not None:
       raise ValueError('Do not set both init and stddev.')
     dtype = input_layer.tensor.dtype
-    params = self.variable('weights', size, init, dt=dtype)
+    params = self.variable('weight', size, init, dt=dtype)
 
     input_height = input_layer.shape[1]
     input_width = input_layer.shape[2]
@@ -108,11 +109,13 @@ class deconv2d(prettytensor.VarStoreMethod):
     output_shape = [input_layer.shape[0], out_rows, out_cols, depth]
     y = tf.nn.conv2d_transpose(input_layer, params, output_shape, stride, edges)
     layers.add_l2loss(books, params, l2loss)
+    print size[-2]
+    print bias_init
     if bias:
       y += self.variable(
           'bias',
           [size[-2]],
-          tf.zeros_initializer,
+          bias_init if bias_init is not None else tf.zeros_initializer,
           dt=dtype)
     books.add_scalar_summary(
         tf.reduce_mean(

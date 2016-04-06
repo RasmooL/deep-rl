@@ -19,7 +19,7 @@ class BaseNet(object):
         self.tensorboard = config['tensorboard']
         if self.tensorboard:
             self.merged = tf.merge_all_summaries()
-            self.writer = tf.train.SummaryWriter("logs/", self.sess.graph_def)
+            self.writer = tf.train.SummaryWriter("logs/", self.sess.graph)
 
         self.sess.run(tf.initialize_all_variables())
 
@@ -28,6 +28,10 @@ class BaseNet(object):
 
     def load(self, name):
         self.saver.restore(self.sess, "save/model_" + name + ".ckpt")
+        if self.tensorboard:  # generate a tensorboard summary from the loaded model
+            summaries = self.sess.run(self.merged)
+            self.writer.add_summary(summaries)
+            self.writer.flush()
 
     @staticmethod
     def make_weight(shape):

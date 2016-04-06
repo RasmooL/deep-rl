@@ -7,6 +7,8 @@ of the MIT license. See the LICENSE.txt file for details.
 
 import sys
 import time
+import random
+import cv2
 from sacred import Experiment
 from core.ALEEmulator import ALEEmulator
 from dqn.Agent import Agent
@@ -63,6 +65,21 @@ def agent_config():
     test_frames = 2e4
     update_freq = 4
 
+@ex.command
+def visualize(_config):
+    emu = ALEEmulator(_config)
+    _config['num_actions'] = emu.num_actions
+    net = NatureDQN(_config)
+    net.load(_config['rom_name'])
+    agent = Agent(emu, net, _config)
+    agent.next(0)
+    cv2.startWindowThread()
+    cv2.namedWindow("deconv")
+
+    for n in range(10000):
+        agent.greedy()
+        recon = net.visualize(agent.mem.get_current())  # (1, W, H, N)
+        cv2.imshow("deconv", cv2.resize(recon[0, :, :, 3], (84*3, 84*3)))
 
 @ex.command
 def test(_config):

@@ -58,6 +58,9 @@ class ALEEmulator(object):
         screen = self.ale.getScreenRGB()
         return cv2.resize(screen, (self.out_width, self.out_height))
 
+    def get_screen_rgb_full(self):
+        return self.ale.getScreenRGB()
+
     def get_screen_gray(self):
         screen = self.ale.getScreenGrayscale()
         return cv2.resize(screen, (self.out_width, self.out_height))
