@@ -44,6 +44,19 @@ class NatureDQN(BaseNet):
                     conv = self.conv2d(outputs[-1], W, config['strides'][n])
                     conv = tf.nn.bias_add(conv, b)
                     conv = tf.nn.relu(conv, name=scope.name)
+
+                    # EXPERIMENT: zero out feature maps
+                    if 'drop_experiment' in config:
+                        nlayer = config['drop_nlayer']
+                        nmap = config['drop_nmaps']
+                        if n == nlayer:
+                            splits = tf.split(3, config['conv_units'][n], conv)
+                            for m in nmap:
+                                splits[m] = tf.zeros_like(splits[m])
+                            conv = tf.concat(3, splits)
+                    # END TODO
+
+
                     outputs.append(conv)
                     self.conv.append(conv)
 
@@ -64,23 +77,11 @@ class NatureDQN(BaseNet):
                         for (i, img) in enumerate(tf.split(3, config['conv_units'][n], W)):
                             img = tf.transpose(img, [2,0,1,3])
                             tf.image_summary(scope.name + "/W" + str(i), img, max_images=4)
+            # endregion make conv layers
 
-            # deconv visualization with the same variables as conv
-            nlayer = 0  # layer to  visualize (0-based)
-            nmap = 7  # map to visualize (0-based)
-
-            conv_slice = tf.slice(self.conv[nlayer], [0, 0, 0, nmap], [1, -1, -1, 1])
-            conv_slice_units = 1
-            for d in conv_slice.get_shape()[1:].as_list():
-                conv_slice_units *= d
-            conv_slice_flat = tf.reshape(conv_slice, [conv_slice_units])
-            index_max = tf.argmax(conv_slice_flat, 0)
-            one_hot_index = tf.one_hot(index_max, conv_slice_units, 1.0, 0.0)
-            conv_slice_mask = tf.reshape(one_hot_index, conv_slice.get_shape())
-            zero_splits = tf.split(3, config['conv_units'][nlayer], tf.zeros_like(self.conv[nlayer]))
-            zero_splits[nmap] = tf.mul(conv_slice, conv_slice_mask)
-            zero_maps = tf.concat(3, zero_splits)
-            deconv_input = zero_maps
+            # region deconv visualization
+            nlayer = 2  # layer to  visualize (0-based)
+            nmap = 2  # map to visualize (0-based)
 
             for n in range(nlayer+1)[::-1]:
                 with tf.variable_scope('conv' + str(n), reuse=True):
@@ -91,17 +92,34 @@ class NatureDQN(BaseNet):
                     W = self.make_weight(shape)
                     b = self.make_bias(config['conv_units'][n])
 
+                    # process visualization layer
+                    if n == nlayer:
+                        conv_debias = self.conv[nlayer] # tf.nn.bias_add(self.conv[nlayer], -b)
+                        conv_slice = tf.slice(conv_debias, [0, 0, 0, nmap], [1, -1, -1, 1])
+                        conv_slice_units = 1
+                        for d in conv_slice.get_shape()[1:].as_list():
+                            conv_slice_units *= d
+                        conv_slice_flat = tf.reshape(conv_slice, [conv_slice_units])
+                        index_max = tf.argmax(conv_slice_flat, 0)
+                        one_hot_index = tf.one_hot(index_max, conv_slice_units, 1.0, 0.0)
+                        conv_slice_mask = tf.reshape(one_hot_index, conv_slice.get_shape())
+                        zero_splits = tf.split(3, config['conv_units'][nlayer], tf.zeros_like(self.conv[nlayer]))
+                        zero_splits[nmap] = conv_slice#tf.mul(conv_slice, conv_slice_mask)
+                        zero_maps = tf.concat(3, zero_splits)
+                        deconv_input = zero_maps
 
+                    # deconv each layer
                     output_shape = tf.pack([tf.shape(self.state)[0],
                                             tf.shape(deconv_input)[1] * config['strides'][n],
                                             tf.shape(deconv_input)[2] * config['strides'][n],
                                             config['state_frames'] if n == 0 else config['conv_units'][n-1]])
                     strides = [1, config['strides'][n], config['strides'][n], 1]
-                    deconv = tf.nn.conv2d_transpose(deconv_input, W, output_shape, strides, "SAME")
+                    debias = deconv_input #if n == nlayer else tf.nn.bias_add(deconv_input, -b)
+                    deconv = tf.nn.conv2d_transpose(debias, W, output_shape, strides, "SAME")
                     deconv = tf.nn.relu(deconv)
                     deconv_input = deconv
                     self.deconv = deconv
-            # endregion make conv layers
+            # endregion deconv visualization
 
             # region make fc layers
             conv_neurons = 1

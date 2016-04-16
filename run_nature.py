@@ -66,6 +66,25 @@ def agent_config():
     update_freq = 4
 
 @ex.command
+def covar(_config):
+    import tensorflow as tf
+    import numpy as np
+    import scipy.misc as sp
+    emu = ALEEmulator(_config)
+    _config['num_actions'] = emu.num_actions
+    net = NatureDQN(_config)
+    net.load(_config['rom_name'])
+
+    with tf.variable_scope('conv0', reuse=True):
+        weight = net.sess.run(tf.get_variable('weight'))
+        weight.shape = (8*8*4, 32)
+        sp.imsave('covar.png', sp.imresize(np.cov(weight.T), 8.0, 'nearest'))
+
+
+
+
+
+@ex.command
 def visualize(_config):
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
@@ -79,7 +98,29 @@ def visualize(_config):
     for n in range(10000):
         agent.greedy()
         recon = net.visualize(agent.mem.get_current())  # (1, W, H, N)
-        cv2.imshow("deconv", cv2.resize(recon[0, :, :, 3], (84*3, 84*3)))
+        cv2.imshow("deconv", cv2.resize(recon[0, :, :, 1:4], (84*3, 84*3)))
+
+
+@ex.command
+def drop(_config):
+    _config['drop_experiment'] = True
+    emu = ALEEmulator(_config)
+    _config['num_actions'] = emu.num_actions
+
+    for layer in range(_config['conv_layers']):
+        for map in range(_config['conv_units'][layer]):
+            _config['drop_nlayer'] = layer
+            _config['drop_nmaps'] = [map]
+
+            net = NatureDQN(_config)
+            net.load(_config['rom_name'])
+            agent = Agent(emu, net, _config)
+            agent.next(0)
+
+            print "Drop {}.{}".format(layer, map)
+            agent.test()
+            from tensorflow.python.framework import ops
+            ops.reset_default_graph()
 
 @ex.command
 def test(_config):
