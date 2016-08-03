@@ -9,6 +9,7 @@ import sys
 import time
 import random
 import cv2
+import numpy as np
 from sacred import Experiment
 from core.ALEEmulator import ALEEmulator
 from dqn.Agent import Agent
@@ -48,7 +49,7 @@ def emu_config():
     frame_skip = 4
     repeat_prob = 0.0
     color_avg = True
-    random_seed = 42
+    random_seed = 942
     random_start = 30
 
 
@@ -92,13 +93,27 @@ def visualize(_config):
     net.load(_config['rom_name'])
     agent = Agent(emu, net, _config)
     agent.next(0)
-    cv2.startWindowThread()
-    cv2.namedWindow("deconv")
+    #cv2.startWindowThread()
+    #cv2.namedWindow("deconv")
 
-    for n in range(10000):
+    for n in range(random.randint(100, 2000)):
         agent.greedy()
-        recon = net.visualize(agent.mem.get_current())  # (1, W, H, N)
-        cv2.imshow("deconv", cv2.resize(recon[0, :, :, 1:4], (84*3, 84*3)))
+
+    recon = net.visualize(agent.mem.get_current())  # (1, W, H, N)
+    width = 8
+    height = 4  # weight*height = feature maps = 32
+    vis = np.zeros((86*height, 86*width, 3))  # 84 + 1 pixel border each side
+    for i,r in enumerate(recon):
+        rb = cv2.copyMakeBorder(r[0, :, :, 1:4], 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=[255,255,255])
+        x = i % width
+        y = i / width
+        ix = 86 * x
+        iy = 86 * y
+        vis[iy:iy+86, ix:ix+86] = rb*255
+    #cv2.imshow("deconv", cv2.resize(recon[10][0, :, :, 1:4], (84*3, 84*3)))
+    #cv2.imshow("deconv", vis)
+    cv2.imwrite('screen.png', emu.get_screen_rgb_full())
+    cv2.imwrite('deconv.png', vis)
 
 
 @ex.command
