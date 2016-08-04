@@ -63,7 +63,7 @@ def agent_config():
     train_start = 5e4
     train_frames = 5e7
     test_freq = 2.5e5
-    test_frames = 2e4
+    test_frames = 5e4
     update_freq = 4
 
 @ex.command
@@ -82,9 +82,6 @@ def covar(_config):
         sp.imsave('covar.png', sp.imresize(np.cov(weight.T), 8.0, 'nearest'))
 
 
-
-
-
 @ex.command
 def visualize(_config):
     emu = ALEEmulator(_config)
@@ -100,16 +97,18 @@ def visualize(_config):
         agent.greedy()
 
     recon = net.visualize(agent.mem.get_current())  # (1, W, H, N)
+    size = 84 * 2 + 2  # double size + 1 pixel border on each side
     width = 8
     height = 4  # weight*height = feature maps = 32
-    vis = np.zeros((86*height, 86*width, 3))  # 84 + 1 pixel border each side
+    vis = np.zeros((size*height, size*width, 3))
     for i,r in enumerate(recon):
-        rb = cv2.copyMakeBorder(r[0, :, :, 1:4], 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=[255,255,255])
+        upscale = cv2.resize(r[0, :, :, 1:4], (84*2, 84*2), interpolation=cv2.INTER_NEAREST)
+        rb = cv2.copyMakeBorder(upscale, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=[255,255,255])
         x = i % width
         y = i / width
-        ix = 86 * x
-        iy = 86 * y
-        vis[iy:iy+86, ix:ix+86] = rb*255
+        ix = size * x
+        iy = size * y
+        vis[iy:iy+size, ix:ix+size] = rb*255
     #cv2.imshow("deconv", cv2.resize(recon[10][0, :, :, 1:4], (84*3, 84*3)))
     #cv2.imshow("deconv", vis)
     cv2.imwrite('screen.png', emu.get_screen_rgb_full())
