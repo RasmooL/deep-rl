@@ -137,7 +137,7 @@ def drop(_config):
             n = 5
             for i in range(n):
                 scores.append(agent.test_noprint())
-                ops.reset_default_graph()
+            ops.reset_default_graph()
             print map, np.mean(scores), np.std(scores, ddof=1)/np.sqrt(n)
 
 @ex.command
