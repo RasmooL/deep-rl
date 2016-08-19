@@ -109,5 +109,23 @@ class Agent(object):
             self.max_reward = avg_reward
 
 
+    def test_noprint(self):
+        test_steps = 0
+        self.emu.new_random_game()
+        total_eps = 1
+        total_r = 0
+        while test_steps < self.test_frames:
+            r, t = self.greedy()
+            total_r += r
+            if t:
+                total_eps += 1
+            test_steps += 1
+
+        avg_reward = float(total_r) / total_eps
+
+        if avg_reward > self.max_reward:
+            self.max_reward = avg_reward
+
+        return avg_reward
 
 

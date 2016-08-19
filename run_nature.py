@@ -13,6 +13,7 @@ from sacred import Experiment
 from core.ALEEmulator import ALEEmulator
 from dqn.Agent import Agent
 from dqn.NatureDQN import NatureDQN
+from tensorflow.python.framework import ops
 
 ex = Experiment('nature')
 
@@ -120,7 +121,8 @@ def drop(_config):
     emu = ALEEmulator(_config)
     _config['num_actions'] = emu.num_actions
 
-    for layer in range(_config['conv_layers']):
+    #for layer in range(_config['conv_layers']):
+    for layer in [0]:  # only first layer
         for map in range(_config['conv_units'][layer]):
             _config['drop_nlayer'] = layer
             _config['drop_nmaps'] = [map]
@@ -131,9 +133,12 @@ def drop(_config):
             agent.next(0)
 
             print "Drop {}.{}".format(layer, map)
-            agent.test()
-            from tensorflow.python.framework import ops
-            ops.reset_default_graph()
+            scores = []
+            n = 5
+            for i in range(n):
+                scores.append(agent.test_noprint())
+                ops.reset_default_graph()
+            print map, np.mean(scores), np.std(scores, ddof=1)/np.sqrt(n)
 
 @ex.command
 def test(_config):
