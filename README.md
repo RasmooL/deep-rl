@@ -1,15 +1,14 @@
 # deep-rl
-## NOTE: Not being updated or worked on, some things are not finished or perhaps buggy.
+## NOTE: Not being updated or worked on anymore, some things are unfinished, contain badly documented additions or are perhaps buggy. Feel free to use the code for anything, but beware.
 Deep Reinforcement Learning in [Tensorflow](https://github.com/tensorflow/tensorflow).
-Aiming to reproduce results from interesting papers. Features from some of the newer papers on deep reinforcement learning will hopefully be implemented soon.
-Later some personal novel techniques might be implemented.
+Aimed to reproduce results from some recent interesting papers.
 
-## Project plan
-Currently implemented:
-- Vanilla DQN: dqn.NatureDQN.py & run_nature.py
+## Contents
+Currently implemented, somewhat tested:
+- Vanilla DQN with Nature config, plus various experiments: dqn.NatureDQN.py & run_nature.py
 - [Double Q-learning](http://arxiv.org/abs/1509.06461): dqn.DoubleDQN.py & run_double.py
 
-Tentative list of potential features:
+Small list of other things that could be interesting:
 - [Dueling network](http://arxiv.org/pdf/1511.06581v2.pdf)
 - [Bootstrapping](http://arxiv.org/abs/1602.04621)
 - [Prioritized experience replay](http://arxiv.org/abs/1511.05952)
@@ -18,7 +17,7 @@ Tentative list of potential features:
 ## How to run
 Install [Tensorflow](https://github.com/tensorflow/tensorflow) in Python 2.7.
 
-Install [Sacred](https://sacred.readthedocs.org/en/latest/index.html) (only necessary for supplied run scripts, you can make your own).
+Install [Sacred](https://sacred.readthedocs.org/en/latest/index.html) (only necessary for supplied run scripts, you can make your own and not use it).
 
 Install [ALE](https://github.com/mgbellemare/Arcade-Learning-Environment).
 
