@@ -6,8 +6,6 @@ of the MIT license. See the LICENSE.txt file for details.
 """
 
 import tensorflow as tf
-import prettytensor as pt
-import core.deconv
 from core.BaseNet import BaseNet
 
 
