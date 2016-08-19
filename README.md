@@ -8,7 +8,7 @@ Currently implemented, somewhat tested:
 - Vanilla DQN with Nature config, plus various experiments: dqn.NatureDQN.py & run_nature.py
 - [Double Q-learning](http://arxiv.org/abs/1509.06461): dqn.DoubleDQN.py & run_double.py
 
-Small list of other things that could be interesting:
+Small list of other things that could be interesting (but are only partly implemented or not at all)
 - [Dueling network](http://arxiv.org/pdf/1511.06581v2.pdf)
 - [Bootstrapping](http://arxiv.org/abs/1602.04621)
 - [Prioritized experience replay](http://arxiv.org/abs/1511.05952)
