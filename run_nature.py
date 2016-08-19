@@ -9,6 +9,7 @@ import sys
 import time
 import random
 import cv2
+import numpy as np
 from sacred import Experiment
 from core.ALEEmulator import ALEEmulator
 from dqn.Agent import Agent
@@ -48,7 +49,7 @@ def emu_config():
     frame_skip = 4
     repeat_prob = 0.0
     color_avg = True
-    random_seed = 42
+    random_seed = 942
     random_start = 30
 
 
@@ -62,8 +63,24 @@ def agent_config():
     train_start = 5e4
     train_frames = 5e7
     test_freq = 2.5e5
-    test_frames = 2e4
+    test_frames = 5e4
     update_freq = 4
+
+@ex.command
+def covar(_config):
+    import tensorflow as tf
+    import numpy as np
+    import scipy.misc as sp
+    emu = ALEEmulator(_config)
+    _config['num_actions'] = emu.num_actions
+    net = NatureDQN(_config)
+    net.load(_config['rom_name'])
+
+    with tf.variable_scope('conv0', reuse=True):
+        weight = net.sess.run(tf.get_variable('weight'))
+        weight.shape = (8*8*4, 32)
+        sp.imsave('covar.png', sp.imresize(np.cov(weight.T), 8.0, 'nearest'))
+
 
 @ex.command
 def visualize(_config):
@@ -73,13 +90,51 @@ def visualize(_config):
     net.load(_config['rom_name'])
     agent = Agent(emu, net, _config)
     agent.next(0)
-    cv2.startWindowThread()
-    cv2.namedWindow("deconv")
+    #cv2.startWindowThread()
+    #cv2.namedWindow("deconv")
 
-    for n in range(10000):
+    for n in range(random.randint(100, 2000)):
         agent.greedy()
-        recon = net.visualize(agent.mem.get_current())  # (1, W, H, N)
-        cv2.imshow("deconv", cv2.resize(recon[0, :, :, 3], (84*3, 84*3)))
+
+    recon = net.visualize(agent.mem.get_current())  # (1, W, H, N)
+    size = 84 * 2 + 2  # double size + 1 pixel border on each side
+    width = 8
+    height = 4  # weight*height = feature maps = 32
+    vis = np.zeros((size*height, size*width, 3))
+    for i,r in enumerate(recon):
+        upscale = cv2.resize(r[0, :, :, 1:4], (84*2, 84*2), interpolation=cv2.INTER_NEAREST)
+        rb = cv2.copyMakeBorder(upscale, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=[255,255,255])
+        x = i % width
+        y = i / width
+        ix = size * x
+        iy = size * y
+        vis[iy:iy+size, ix:ix+size] = rb*255
+    #cv2.imshow("deconv", cv2.resize(recon[10][0, :, :, 1:4], (84*3, 84*3)))
+    #cv2.imshow("deconv", vis)
+    cv2.imwrite('screen.png', emu.get_screen_rgb_full())
+    cv2.imwrite('deconv.png', vis)
+
+
+@ex.command
+def drop(_config):
+    _config['drop_experiment'] = True
+    emu = ALEEmulator(_config)
+    _config['num_actions'] = emu.num_actions
+
+    for layer in range(_config['conv_layers']):
+        for map in range(_config['conv_units'][layer]):
+            _config['drop_nlayer'] = layer
+            _config['drop_nmaps'] = [map]
+
+            net = NatureDQN(_config)
+            net.load(_config['rom_name'])
+            agent = Agent(emu, net, _config)
+            agent.next(0)
+
+            print "Drop {}.{}".format(layer, map)
+            agent.test()
+            from tensorflow.python.framework import ops
+            ops.reset_default_graph()
 
 @ex.command
 def test(_config):

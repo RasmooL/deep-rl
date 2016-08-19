@@ -1,5 +1,5 @@
 # deep-rl
-
+## NOTE: Not being updated or worked on, some things are not finished or perhaps buggy.
 Deep Reinforcement Learning in [Tensorflow](https://github.com/tensorflow/tensorflow).
 Aiming to reproduce results from interesting papers. Features from some of the newer papers on deep reinforcement learning will hopefully be implemented soon.
 Later some personal novel techniques might be implemented.
