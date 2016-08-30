@@ -27,7 +27,7 @@ class BaseNet(object):
         self.saver.save(self.sess, "save/model_" + name + ".ckpt")
 
     def load(self, name):
-        self.saver.restore(self.sess, "save/model_" + name + ".ckpt")
+        self.saver.restore(self.sess, 'save/breakout_398.ckpt')#"save/model_" + name + ".ckpt")
         if self.tensorboard:  # generate a tensorboard summary from the loaded model
             summaries = self.sess.run(self.merged)
             self.writer.add_summary(summaries)

@@ -132,7 +132,7 @@ def drop(_config):
             agent = Agent(emu, net, _config)
             agent.next(0)
 
-            print "Drop {}.{}".format(layer, map)
+            print "#Drop {}.{}".format(layer, map)
             scores = []
             n = 5
             for i in range(n):
